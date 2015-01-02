@@ -191,6 +191,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/charitydialog.h \
     src/qt/blockbrowser.h \
     src/qt/winshutdownmonitor.h \
+    src/qt/peertablemodel.h \
     src/alert.h \
     src/addrman.h \
     src/base58.h \
@@ -322,6 +323,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactionfilterproxy.cpp \
     src/qt/transactionview.cpp \
     src/qt/walletmodel.cpp \
+    src/qt/peertablemodel.cpp \
     src/bitcoinrpc.cpp \
     src/rpcdump.cpp \
     src/rpcnet.cpp \

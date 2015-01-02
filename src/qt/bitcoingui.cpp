@@ -1332,8 +1332,14 @@ void BitcoinGUI::unlockWalletForMint()
    if (walletStack) walletStack->unlockWalletForMint();
 }
 
+void BitcoinGUI::charityClicked(QString addr)
+{
+    if (walletStack) walletStack->charityClicked(addr);
+}
+
 void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
 {
+
     // activateWindow() (sometimes) helps with keyboard focus on Windows
     if (isHidden())
     {
@@ -1357,11 +1363,6 @@ void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
 void BitcoinGUI::toggleHidden()
 {
     showNormalIfMinimized(true);
-}
-
-void BitcoinGUI::charityClicked(QString addr)
-{
-    if (walletStack) walletStack->charityClicked(addr);
 }
 
 void BitcoinGUI::updateWeight()
@@ -1482,65 +1483,37 @@ void BitcoinGUI::stakingIconClicked()
 
 void BitcoinGUI::updateStakingIcon()
 {
-    updateWeight();
+    if (!walletStack)
+        return;
 
-    if (nLastCoinStakeSearchInterval && nWeight)
-    {
-        uint64_t nNetworkWeight = GetPoSKernelPS();
-        unsigned nEstimateTime = nTargetSpacing * nNetworkWeight / nWeight;
+    labelStakingIcon->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
 
-        QString text;
-        if (nEstimateTime < 60)
-        {
-            text = tr("%n second(s)", "", nEstimateTime);
-        }
-        else if (nEstimateTime < 60*60)
-        {
-            text = tr("%n minute(s)", "", nEstimateTime/60);
-        }
-        else if (nEstimateTime < 24*60*60)
-        {
-            text = tr("%n hour(s)", "", nEstimateTime/(60*60));
-        }
-        else
-        {
-            text = tr("%n day(s)", "", nEstimateTime/(60*60*24));
-        }
-
-        labelStakingIcon->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        labelStakingIcon->setToolTip(tr("Staking.<br>Your weight is %1<br>Network weight is %2<br>Expected time to earn reward is %3").arg(nWeight).arg(nNetworkWeight).arg(text));
-    }
+    if (!clientModel->getNumConnections())
+        labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
+    else if (clientModel->getNumConnections() < 3 )
+        labelStakingIcon->setToolTip(tr("Not staking because wallet is still acquiring nodes"));
+    else if (clientModel->inInitialBlockDownload() ||
+             clientModel->getNumBlocks() < clientModel->getNumBlocksOfPeers())
+        labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
+    else if (walletStack->isWalletLocked())
+        labelStakingIcon->setToolTip(tr("Not staking because wallet is locked"));
     else
     {
-        labelStakingIcon->setPixmap(QIcon(":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-        if (pwalletMain && pwalletMain->IsLocked())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is locked"));
-        else if (vNodes.empty())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
-        else if (IsInitialBlockDownload())
-            labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
-        else if (!nWeight)
+        uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
+
+        walletStack->getStakeWeight(nMinWeight,nMaxWeight,nWeight);
+        if (!nWeight)
             labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
-        else if (walletStack->isWalletLocked())
-            labelStakingIcon->setToolTip(tr("Not staking"));
         else
         {
-            uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
+            quint64 nNetworkWeight = clientModel->getPosKernalPS();
+            int nEstimateTime = clientModel->getStakeTargetSpacing() * 10 * nNetworkWeight / nWeight;
+            QString text = (GUIUtil::formatDurationStr(nEstimateTime));
 
-            walletStack->getStakeWeight(nMinWeight,nMaxWeight,nWeight);
-            if (!nWeight)
-                labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
-            else
-            {
-                quint64 nNetworkWeight = clientModel->getPosKernalPS();
-                int nEstimateTime = clientModel->getStakeTargetSpacing() * 10 * nNetworkWeight / nWeight;
-                QString text = (GUIUtil::formatDurationStr(nEstimateTime));
-
-                labelStakingIcon->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-                labelStakingIcon->setToolTip(tr("Staking.\n Your weight is %1\n Network weight is %2\n You have 50\% chance of producing a stake within %3").arg(nWeight).arg(nNetworkWeight).arg(text));
-              }
-         }
-    }
+            labelStakingIcon->setPixmap(QIcon(":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+            labelStakingIcon->setToolTip(tr("Staking.\n Your weight is %1\n Network weight is %2\n You have 50\% chance of producing a stake within %3").arg(nWeight).arg(nNetworkWeight).arg(text));
+          }
+     }
 }
 
 WId BitcoinGUI::getMainWinId() const

@@ -94,7 +94,7 @@ private:
 private slots:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
-    void updateMyWeight();
+    void updateMyWeight(const CBlockIndex *blockindex);
     void updateAlerts(const QString &warnings);
 
 };

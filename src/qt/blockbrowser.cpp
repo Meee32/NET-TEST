@@ -5,9 +5,9 @@
 #include "clientmodel.h"
 #include "txdb.h"
 
-double GetPoSKernelPS();
+double GetPoSKernelPS(const CBlockIndex* blockindex);
 double GetDifficulty(const CBlockIndex* blockindex);
-double GetPoWMHashPS();
+double GetPoWMHashPS(const CBlockIndex* blockindex);
 
 using namespace std;
 
@@ -267,12 +267,12 @@ void BlockBrowser::updateExplorer(bool block)
         if (pindex->IsProofOfStake()) {
             ui->hashRateLabel->setText("Block Network Stake Weight:");
             ui->diffLabel->setText("PoS Block Difficulty:");
-            ui->hashRateBox->setText(QString::number(GetPoSKernelPS(), 'f', 3) + " ");
+            ui->hashRateBox->setText(QString::number(GetPoSKernelPS(pindex), 'f', 3) + " ");
         }
         else {
             ui->hashRateLabel->setText("Block Hash Rate:");
             ui->diffLabel->setText("PoW Block Difficulty:");
-            ui->hashRateBox->setText(QString::number(GetPoWMHashPS(), 'f', 3) + " MH/s");
+            ui->hashRateBox->setText(QString::number(GetPoWMHashPS(pindex), 'f', 3) + " MH/s");
         }
         ui->moneySupplyBox->setText(QString::number(getMoneySupply(height), 'f', 6) + " HBN");
     }

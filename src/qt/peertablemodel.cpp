@@ -28,7 +28,7 @@ bool NodeLessThan::operator()(const CNodeCombinedStats &left, const CNodeCombine
     case PeerTableModel::Address:
         return pLeft->addrName.compare(pRight->addrName) < 0;
     case PeerTableModel::Subversion:
-        return pLeft->cleanSubVer.compare(pRight->cleanSubVer) < 0;
+        return pLeft->strSubVer.compare(pRight->strSubVer) < 0;
     case PeerTableModel::Ping:
         return pLeft->dPingTime < pRight->dPingTime;
     }
@@ -159,7 +159,7 @@ QVariant PeerTableModel::data(const QModelIndex &index, int role) const
         case Address:
             return QString::fromStdString(rec->nodeStats.addrName);
         case Subversion:
-            return QString::fromStdString(rec->nodeStats.cleanSubVer);
+            return QString::fromStdString(rec->nodeStats.strSubVer);
         case Ping:
             return GUIUtil::formatPingTime(rec->nodeStats.dPingTime);
         }

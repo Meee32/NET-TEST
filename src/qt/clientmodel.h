@@ -4,6 +4,7 @@
 #include <QObject>
 
 class OptionsModel;
+class PeerTableModel;
 class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
@@ -29,6 +30,7 @@ public:
     ~ClientModel();
 
     OptionsModel *getOptionsModel();
+    PeerTableModel *getPeerTableModel();
 
     int getNumConnections() const;
     int getNumBlocks() const;
@@ -60,11 +62,13 @@ public:
 
     QString formatFullVersion() const;
     QString formatBuildDate() const;
+    bool isReleaseVersion() const;
     QString clientName() const;
     QString formatClientStartupTime() const;
 
 private:
     OptionsModel *optionsModel;
+    PeerTableModel *peerTableModel;
 
     int cachedNumBlocks;
     int cachedNumBlocksOfPeers;
@@ -79,6 +83,7 @@ signals:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, int countOfPeers);
     void bytesChanged(quint64 totalBytesIn, quint64 totalBytesOut);
+    void alertsChanged(const QString &warnings);
     void walletAdded(const QString &name);
     void walletRemoved(const QString &name);
 

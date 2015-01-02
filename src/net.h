@@ -39,6 +39,7 @@ bool RecvLine(SOCKET hSocket, std::string& strLine);
 bool GetMyExternalIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
+CNode* FindNode(const std::string& addrName);
 CNode* FindNode(const CService& ip);
 CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
 void MapPort();
@@ -47,6 +48,20 @@ bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::str
 void StartNode(void* parg);
 bool StopNode();
 void SocketSendData(CNode *pnode);
+typedef int NodeId;
+
+void ThreadStakeMinter(void* parg);
+// Signals for message handling
+struct CNodeSignals
+{
+    boost::signals2::signal<int ()> GetHeight;
+    boost::signals2::signal<bool (CNode*)> ProcessMessages;
+    boost::signals2::signal<bool (CNode*, bool)> SendMessages;
+    boost::signals2::signal<void (NodeId, const CNode*)> InitializeNode;
+    boost::signals2::signal<void (NodeId)> FinalizeNode;
+};
+
+CNodeSignals& GetNodeSignals();
 
 void ThreadStakeMiner(void* parg);
 
@@ -133,12 +148,17 @@ extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
 extern CCriticalSection cs_mapRelay;
 extern std::map<CInv, int64_t> mapAlreadyAskedFor;
 
+extern std::vector<std::string> vAddedNodes;
+extern CCriticalSection cs_vAddedNodes;
 
+extern NodeId nLastNodeId;
+extern CCriticalSection cs_nLastNodeId;
 
 
 class CNodeStats
 {
 public:
+    NodeId nodeid;
     uint64_t nServices;
     int64_t nLastSend;
     int64_t nLastRecv;
@@ -151,6 +171,8 @@ public:
     bool fInbound;
     int nStartingHeight;
     int nMisbehavior;
+    bool fSyncNode;
+    uint64_t nBlocksRequested;
     double dPingTime;
     double dPingWait;
 };
@@ -248,6 +270,7 @@ public:
     
     int64_t nLastSendEmpty;
     int64_t nTimeConnected;
+    uint64_t nBlocksRequested;
     CAddress addr;
     std::string addrName;
     CService addrLocal;
@@ -261,6 +284,7 @@ public:
     bool fDisconnect;
     CSemaphoreGrant grantOutbound;
     int nRefCount;
+    NodeId id;
 protected:
 
     // Denial-of-service detection/prevention
@@ -276,6 +300,7 @@ public:
     CBlockIndex* pindexLastGetBlocksBegin;
     uint256 hashLastGetBlocksEnd;
     int nStartingHeight;
+    bool fStartSync;
 
     // flood relay
     std::vector<CAddress> vAddrToSend;
@@ -309,6 +334,7 @@ public:
         nRecvVersion = INIT_PROTO_VERSION;
         nLastSend = 0;
         nLastRecv = 0;
+        nBlocksRequested = 0;
         nSendBytes = 0;
         nRecvBytes = 0;
         nLastSendEmpty = GetTime();
@@ -330,6 +356,7 @@ public:
         pindexLastGetBlocksBegin = 0;
         hashLastGetBlocksEnd = 0;
         nStartingHeight = -1;
+        fStartSync = false;
         fGetAddr = false;
         nMisbehavior = 0;
         hashCheckpointKnown = 0;
@@ -339,9 +366,14 @@ public:
         nPingUsecTime = 0;
         fPingQueued = false;
 
+        {
+            LOCK(cs_nLastNodeId);
+            id = nLastNodeId++;
+        }
         // Be shy and don't send version until we hear
         if (hSocket != INVALID_SOCKET && !fInbound)
             PushVersion();
+        GetNodeSignals().InitializeNode(GetId(), this);
     }
 
     ~CNode()
@@ -351,6 +383,7 @@ public:
             closesocket(hSocket);
             hSocket = INVALID_SOCKET;
         }
+        GetNodeSignals().FinalizeNode(GetId());
     }
 
 private:
@@ -364,6 +397,9 @@ private:
     static uint64_t nTotalBytesSent;
 public:
 
+    NodeId GetId() const {
+        return id;
+    }
 
     int GetRefCount()
     {
@@ -375,7 +411,7 @@ public:
     unsigned int GetTotalRecvSize()
     {
         unsigned int total = 0;
-        BOOST_FOREACH(const CNetMessage &msg, vRecvMsg) 
+        BOOST_FOREACH(const CNetMessage &msg, vRecvMsg)
             total += msg.vRecv.size() + 24;
         return total;
     }

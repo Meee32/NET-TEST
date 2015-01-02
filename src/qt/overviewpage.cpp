@@ -129,7 +129,7 @@ OverviewPage::OverviewPage(QWidget *parent) :
         QTimer *timerMyWeight = new QTimer();
         connect(timerMyWeight, SIGNAL(timeout()), this, SLOT(updateMyWeight()));
         timerMyWeight->start(30 * 1000);
-        updateMyWeight();
+        updateMyWeight(0);
     }
 
 
@@ -236,7 +236,7 @@ void OverviewPage::setNumTransactions(int count)
 }
 
 
-void OverviewPage::updateMyWeight()
+void OverviewPage::updateMyWeight(const CBlockIndex* blockindex)
 {
     uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
     if (nLastCoinStakeSearchInterval && pwalletMain && !IsInitialBlockDownload()) //netcoin GetStakeWeight requires mutex lock on wallet which tends to freeze initial block downloads
@@ -244,7 +244,7 @@ void OverviewPage::updateMyWeight()
 
     if (nLastCoinStakeSearchInterval && nWeight)
     {
-        uint64_t nNetworkWeight2 = GetPoSKernelPS();
+        uint64_t nNetworkWeight2 = GetPoSKernelPS(0);
         unsigned nEstimateTime = nTargetSpacing * 2 * nNetworkWeight2 / nWeight;
 
         QString text;
@@ -372,7 +372,7 @@ void OverviewPage::updateStatistics()
     double nSubsidy = GetProofOfWorkReward(nHeight, 0, pindexBest->GetBlockHash())/COIN;
     uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
     pwalletMain->GetStakeWeight(*pwalletMain, nMinWeight, nMaxWeight, nWeight);
-    uint64_t nNetworkWeight2 = GetPoSKernelPS();
+    uint64_t nNetworkWeight2 = GetPoSKernelPS(0);
     int64_t volume = ((pindexBest->nMoneySupply)/100000000);
     int peers = this->modelStatistics->getNumConnections();
     pPawrate2 = (double)pPawrate;

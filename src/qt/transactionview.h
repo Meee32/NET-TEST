@@ -60,6 +60,9 @@ private:
 
     QWidget *createDateRangeWidget();
 
+private:
+    void updateTotalAmount();
+
 private slots:
     void contextualMenu(const QPoint &);
     void dateRangeChanged();
@@ -70,7 +73,6 @@ private slots:
     void copyLabel();
     void copyAmount();
     void copyTxID();
-    void updateTotalAmount();
 
 signals:
     void doubleClicked(const QModelIndex&);

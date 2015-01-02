@@ -1,6 +1,9 @@
 #ifndef RPCCONSOLE_H
 #define RPCCONSOLE_H
 
+#include "guiutil.h"
+#include "net.h"
+#include "peertablemodel.h"
 #include <QDialog>
 
 namespace Ui {
@@ -8,6 +11,8 @@ namespace Ui {
 }
 class ClientModel;
 
+class QItemSelection;
+class CNodeCombinedStats;
 /** Local Bitcoin RPC console. */
 class RPCConsole: public QDialog
 {
@@ -42,6 +47,9 @@ private slots:
     void on_sldGraphRange_valueChanged(int value);
     /** update traffic statistics */
     void updateTrafficStats(quint64 totalBytesIn, quint64 totalBytesOut);
+    void resizeEvent(QResizeEvent *event);
+    void showEvent(QShowEvent *event);
+    void hideEvent(QHideEvent *event);
 
 public slots:
     void clear();
@@ -58,6 +66,11 @@ public slots:
     void showTab_Stats();
     /** Show Peer Tab */
     void showTab_Peers();
+    /** Handle selection of peer in peers list */
+    void peerSelected(const QItemSelection &selected, const QItemSelection &deselected);
+    /** Handle updated peer information */
+    void peerLayoutChanged();
+
 signals:
     // For RPC command executor
     void stopExecutor();
@@ -66,12 +79,22 @@ signals:
 private:
     static QString FormatBytes(quint64 bytes);
     void setTrafficGraphRange(int mins);
+    /** show detailed information on ui about selected node */
+    void updateNodeDetail(const CNodeCombinedStats *stats);
+
+    enum ColumnWidths
+    {
+        ADDRESS_COLUMN_WIDTH = 150,
+        SUBVERSION_COLUMN_WIDTH = 150,
+        PING_COLUMN_WIDTH = 100
+    };
     Ui::RPCConsole *ui;
     ClientModel *clientModel;
     QStringList history;
     int historyPtr;
 
     void startExecutor();
+    NodeId cachedNodeid;
 };
 
 #endif // RPCCONSOLE_H

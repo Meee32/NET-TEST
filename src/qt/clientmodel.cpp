@@ -1,6 +1,7 @@
 #include "clientmodel.h"
 
 #include "guiconstants.h"
+#include "peertablemodel.h"
 #include "optionsmodel.h"
 #include "addresstablemodel.h"
 #include "transactiontablemodel.h"
@@ -14,16 +15,17 @@
 #include <QDebug>
 
 static const int64_t nClientStartupTime = GetTime();
-double GetPoSKernelPS();
+double GetPoSKernelPS(const CBlockIndex* blockindex = NULL);
 double GetDifficulty(const CBlockIndex* blockindex);
-double GetPoWMHashPS();
+double GetPoWMHashPS(const CBlockIndex* blockindex = NULL);
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
-    QObject(parent), optionsModel(optionsModel),
-    cachedNumBlocks(0), cachedNumBlocksOfPeers(0), pollTimer(0)
+    QObject(parent), optionsModel(optionsModel), peerTableModel(0),
+    cachedNumBlocks(0), cachedNumBlocksOfPeers(0), numBlocksAtStartup(-1), pollTimer(0)
 {
     numBlocksAtStartup = -1;
 
+    peerTableModel = new PeerTableModel(this);
     pollTimer = new QTimer(this);
     pollTimer->setInterval(MODEL_UPDATE_DELAY);
     pollTimer->start();
@@ -48,9 +50,27 @@ int ClientModel::getNumBlocks() const
     return nBestHeight;
 }
 
+int ClientModel::getProtocolVersion() const
+{
+    return PROTOCOL_VERSION;
+}
+
+double ClientModel::getDifficulty(bool fProofofStake)
+{
+    if (fProofofStake)
+       return GetDifficulty(GetLastBlockIndex(pindexBest,true));
+    else
+       return GetDifficulty(GetLastBlockIndex(pindexBest,false));
+}
+
 double ClientModel::getProofOfStakeReward()
 {
     return GetProofOfStakeReward(0, GetLastBlockIndex(pindexBest, true)->nBits, GetLastBlockIndex(pindexBest, true)->nTime, true)/10000;
+}
+
+int ClientModel::getLastPoSBlock()
+{
+    return GetLastBlockIndex(pindexBest,true)->nHeight;
 }
 
 qint64 ClientModel::getMoneySupply()
@@ -77,24 +97,6 @@ double ClientModel::getPosKernalPS()
 int ClientModel::getStakeTargetSpacing()
 {
     return nTargetSpacing;
-}
-
-int ClientModel::getProtocolVersion() const
-{
-    return PROTOCOL_VERSION;
-}
-
-double ClientModel::getDifficulty(bool fProofofStake)
-{
-    if (fProofofStake)
-       return GetDifficulty(GetLastBlockIndex(pindexBest,true));
-    else
-       return GetDifficulty(GetLastBlockIndex(pindexBest,false));
-}
-
-int ClientModel::getLastPoSBlock()
-{
-    return GetLastBlockIndex(pindexBest,true)->nHeight;
 }
 
 quint64 ClientModel::getTotalBytesRecv() const
@@ -206,6 +208,11 @@ OptionsModel *ClientModel::getOptionsModel()
     return optionsModel;
 }
 
+PeerTableModel *ClientModel::getPeerTableModel()
+{
+    return peerTableModel;
+}
+
 QString ClientModel::formatFullVersion() const
 {
     return QString::fromStdString(FormatFullVersion());
@@ -214,6 +221,11 @@ QString ClientModel::formatFullVersion() const
 QString ClientModel::formatBuildDate() const
 {
     return QString::fromStdString(CLIENT_DATE);
+}
+
+bool ClientModel::isReleaseVersion() const
+{
+    return CLIENT_VERSION_IS_RELEASE;
 }
 
 QString ClientModel::clientName() const

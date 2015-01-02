@@ -43,7 +43,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return dDiff;
 }
 
-double GetPoWMHashPS()
+double GetPoWMHashPS(const CBlockIndex* blockindex)
 {
     if (pindexBest->nHeight >= LAST_POW_BLOCK)
         return 0;
@@ -54,6 +54,9 @@ double GetPoWMHashPS()
     CBlockIndex* pindex = pindexGenesisBlock;
     CBlockIndex* pindexPrevWork = pindexGenesisBlock;
     const CBlockIndex* pindexStop = pindexBest;
+
+    if (blockindex != NULL)
+        pindexStop = blockindex;
 
     while (pindex && pindex->nHeight < pindexStop->nHeight)
     {
@@ -68,17 +71,19 @@ double GetPoWMHashPS()
         pindex = pindex->pnext;
     }
 
-    return GetDifficulty() * 4294.967296 / nTargetSpacingWork;
+    return GetDifficulty(pindexPrevWork) * 4294.967296 / nTargetSpacingWork;
 }
 
-double GetPoSKernelPS()
+double GetPoSKernelPS(const CBlockIndex* blockindex)
 {
     int nPoSInterval = 72;
     double dStakeKernelsTriedAvg = 0;
     int nStakesHandled = 0, nStakesTime = 0;
 
-    CBlockIndex* pindex = pindexBest;;
-    CBlockIndex* pindexPrevStake = NULL;
+    const CBlockIndex* pindex = pindexBest;
+    const CBlockIndex* pindexPrevStake = NULL;
+    if (blockindex != NULL)
+        pindex = blockindex;
 
     while (pindex && nStakesHandled < nPoSInterval)
     {
@@ -108,9 +113,9 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
-    result.push_back(Pair("time", (int64_t)block.GetBlockTime()));
-    result.push_back(Pair("nonce", (uint64_t)block.nNonce));
-    result.push_back(Pair("bits", HexBits(block.nBits)));
+    result.push_back(Pair("time", (boost::int64_t)block.GetBlockTime()));
+    result.push_back(Pair("nonce", (boost::uint64_t)block.nNonce));
+    result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("blocktrust", leftTrim(blockindex->GetBlockTrust().GetHex(), '0')));
     result.push_back(Pair("chaintrust", leftTrim(blockindex->nChainTrust.GetHex(), '0')));
