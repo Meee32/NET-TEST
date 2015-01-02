@@ -147,6 +147,16 @@ void ClientModel::updateNumConnections(int numConnections)
     emit numConnectionsChanged(numConnections);
 }
 
+void ClientModel::updateWalletAdded(const QString &name)
+{
+    emit walletAdded(name);
+}
+
+void ClientModel::updateWalletRemoved(const QString &name)
+{
+    emit walletRemoved(name);
+}
+
 void ClientModel::updateAlert(const QString &hash, int status)
 {
     // Show error message notification for new alert

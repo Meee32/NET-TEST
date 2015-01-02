@@ -485,3 +485,15 @@ void RPCConsole::on_showCLOptionsButton_clicked()
     GUIUtil::HelpMessageBox help;
     help.exec();
 }
+
+void RPCConsole::showTab_Stats()
+{
+    ui->tabWidget->setCurrentIndex(2);
+    this->show();
+}
+
+void RPCConsole::showTab_Peers()
+{
+    ui->tabWidget->setCurrentIndex(3);
+    this->show();
+}

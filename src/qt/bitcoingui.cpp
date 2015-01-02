@@ -284,6 +284,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     rpcConsole = new RPCConsole(this);
 
     connect(openTrafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showTab_Stats()));
+    connect(connectionIconAction, SIGNAL(triggered()), rpcConsole, SLOT(showTab_Peers()));
     connect(labelConnectionsIcon, SIGNAL(clicked()), rpcConsole, SLOT(showTab_Peers()));
     connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
 
@@ -464,6 +465,9 @@ void BitcoinGUI::createActions()
     openTrafficAction->setStatusTip(tr("Open Network Traffic Graph"));
     openTrafficAction->setToolTip(openTrafficAction->statusTip());
 
+    connectionIconAction = new QAction(QIcon(":/icons/p2p"), tr("Current &Peer Info"), this);
+    connectionIconAction->setStatusTip(tr("Get Current Peer Information"));
+    connectionIconAction->setToolTip(connectionIconAction->statusTip());
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -622,8 +626,6 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         walletStack->setClientModel(clientModel);
         rpcConsole->setClientModel(clientModel);
 
-        // Receive and report messages from network/worker thread
-        connect(clientModel, SIGNAL(message(QString,QString,unsigned int)), this, SLOT(message(QString,QString,unsigned int)));
 
         // Watch for wallets being loaded or unloaded
         connect(clientModel, SIGNAL(walletAdded(QString)), this, SLOT(addWallet(QString)));
@@ -683,6 +685,48 @@ bool BitcoinGUI::setCurrentWallet(const QString& name)
     if (walletItems.count() == 0) return false;
     walletList->setCurrentItem(walletItems[0]);
     return true;
+}
+
+void BitcoinGUI::setWalletModel(WalletModel *walletModel)
+{
+    this->walletModel = walletModel;
+    if(walletModel)
+    {
+        // Report errors from wallet thread
+        connect(walletModel, SIGNAL(error(QString,QString,bool)), this, SLOT(error(QString,QString,bool)));
+
+        // Put transaction list in tabs
+        transactionView->setModel(walletModel);
+
+        overviewPage->setModel(walletModel);
+
+        setEncryptionStatus(walletModel->getEncryptionStatus());
+        connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SLOT(setEncryptionStatus(int)));
+
+        // Balloon pop-up for new transaction
+        connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+                this, SLOT(incomingTransaction(QModelIndex,int,int)));
+
+        // Ask for passphrase if needed
+        connect(walletModel, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
+    }
+}
+
+void BitcoinGUI::setMessageModel(MessageModel *messageModel)
+{
+    this->messageModel = messageModel;
+    if(messageModel)
+    {
+        // Report errors from message thread
+        connect(messageModel, SIGNAL(error(QString,QString,bool)), this, SLOT(error(QString,QString,bool)));
+
+        // Put transaction list in tabs
+        messagePage->setModel(messageModel);
+
+        // Balloon pop-up for new message
+        connect(messageModel, SIGNAL(rowsInserted(QModelIndex,int,int)),
+                this, SLOT(incomingMessage(QModelIndex,int,int)));
+    }
 }
 
 void BitcoinGUI::createTrayIcon()
@@ -1497,4 +1541,9 @@ void BitcoinGUI::updateStakingIcon()
               }
          }
     }
+}
+
+WId BitcoinGUI::getMainWinId() const
+{
+    return winId();
 }

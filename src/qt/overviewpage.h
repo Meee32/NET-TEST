@@ -42,7 +42,6 @@ public:
     ~OverviewPage();
 
     void setModel(WalletModel *model);
-    void setClientModel(ClientModel *clientModel);
     void setWalletModel(WalletModel *walletModel);
     void showOutOfSyncWarning(bool fShow);
 

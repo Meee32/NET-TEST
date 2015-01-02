@@ -13,12 +13,14 @@ class TransactionTableModel;
 class WalletView;
 class ClientModel;
 class WalletModel;
+class WalletModel2;
 class MessageModel;
 class MessagePage;
 class WalletStack;
 class TransactionView;
 class OverviewPage;
 class AddressBookPage;
+class MessagePage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
@@ -75,14 +77,23 @@ public:
         The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
+    void setWalletModel(WalletModel *walletModel);
+    /** Set the message model.
+        The message model represents encryption message database, and offers access to the list of messages, address book and sending
+        functionality.
+    */
+    void setMessageModel(MessageModel *messageModel);
 
-
+    
     void setWalletManager(CWalletManager *walletManager) { this->walletManager = walletManager; }
     bool addWallet(const QString& name, WalletModel *walletModel);
     QString getCurrentWallet();
     bool setCurrentWallet(const QString& name);
 
     QAction *exportAction;
+
+   /// Get window identifier of QMainWindow (BitcoinGUI)
+   WId getMainWinId() const;
 
 protected:
     void changeEvent(QEvent *e);
@@ -92,6 +103,8 @@ protected:
 
 private:
     ClientModel *clientModel;
+    WalletModel *walletModel;
+    MessageModel *messageModel;
 
     CWalletManager *walletManager;
     StakeForCharityDialog *stakeForCharityDialog;

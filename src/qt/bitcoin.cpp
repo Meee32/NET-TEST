@@ -8,6 +8,7 @@
 #include "messagemodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
+#include "winshutdownmonitor.h"
 
 #include "init.h"
 #include "ui_interface.h"
@@ -114,9 +115,6 @@ static void handleRunawayException(std::exception *e)
 #ifndef BITCOIN_QT_TEST
 int main(int argc, char *argv[])
 {
-    // Command-line options take precedence:
-    ParseParameters(argc, argv);
-
     // Do this early as we don't want to bother initializing if we are just calling IPC
     ipcScanRelay(argc, argv);
 
@@ -131,6 +129,9 @@ int main(int argc, char *argv[])
 
     // Install global event filter that makes sure that long tooltips can be word-wrapped
     app.installEventFilter(new GUIUtil::ToolTipToRichTextFilter(TOOLTIP_WRAP_THRESHOLD, &app));
+
+    // Command-line options take precedence:
+    ParseParameters(argc, argv);
 
     // ... then bitcoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(false)))
@@ -233,6 +234,8 @@ int main(int argc, char *argv[])
 
                 window.setClientModel(&clientModel);
                 window.setWalletManager(pWalletManager);
+                window.setWalletModel(&walletModel);
+                window.setMessageModel(&messageModel);
 
                 // Create wallet models for each wallet and add it.
                 BOOST_FOREACH(const wallet_map::value_type& item, pWalletManager->GetWalletMap())
@@ -243,6 +246,11 @@ int main(int argc, char *argv[])
                     window.addWallet(name, walletModel);
                 }
                 window.setCurrentWallet("~Default");
+
+#if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
+                app.installNativeEventFilter(new WinShutdownMonitor());
+#endif
+
 
                 // If -min option passed, start window minimized.
                 if(GetBoolArg("-min"))
@@ -257,10 +265,16 @@ int main(int argc, char *argv[])
                 // Place this here as guiref has to be defined if we don't want to lose URIs
                 ipcInit(argc, argv);
 
+#if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
+                 WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("HoboNickels shutting down. Please wait..."), (HWND)window.getMainWinId());
+#endif
+
                 app.exec();
 
                 window.hide();
                 window.setClientModel(0);
+                window.setWalletModel(0);
+                window.setMessageModel(0);
                 guiref = 0;
             }
             // Shutdown the core and its threads, but don't exit Bitcoin-Qt here

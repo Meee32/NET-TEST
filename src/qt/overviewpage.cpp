@@ -193,17 +193,6 @@ void OverviewPage::setTotBalance(qint64 totBalance)
    ui->labelTotBalance->setText(BitcoinUnits::formatWithUnit(unit, totBalance));
 }
 
-void OverviewPage::setClientModel(ClientModel *model)
-{
-    this->clientModel = model;
-    if(model)
-    {
-        // Show warning if this is a prerelease version
-        connect(model, SIGNAL(alertsChanged(QString)), this, SLOT(updateAlerts(QString)));
-        updateAlerts(model->getStatusBarWarnings());
-    }
-}
-
 void OverviewPage::updateAlerts(const QString &warnings)
 {
     this->ui->labelAlerts->setVisible(!warnings.isEmpty());
