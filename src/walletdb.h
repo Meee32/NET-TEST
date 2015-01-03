@@ -23,7 +23,6 @@ enum DBErrors
     DB_LOAD_FAIL,
     DB_NEED_REWRITE
 };
-
 class CKeyMetadata
 {
 public:
@@ -167,20 +166,20 @@ public:
 
     bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta)
     {
-        nWalletDBUpdated++;
-        bool fEraseUnencryptedKey = true;
+      nWalletDBUpdated++;
+      bool fEraseUnencryptedKey = true;
 
-        if(!Write(std::make_pair(std::string("keymeta"), vchPubKey), keyMeta))
-            return false;
+      if(!Write(std::make_pair(std::string("keymeta"), vchPubKey), keyMeta))
+          return false;
 
-        if (!Write(std::make_pair(std::string("ckey"), vchPubKey.Raw()), vchCryptedSecret, true))
-            return false;
-        if (fEraseUnencryptedKey)
-        {
-            Erase(std::make_pair(std::string("key"), vchPubKey.Raw()));
-            Erase(std::make_pair(std::string("wkey"), vchPubKey.Raw()));
-        }
-        return true;
+      if (!Write(std::make_pair(std::string("ckey"), vchPubKey.Raw()), vchCryptedSecret, true))
+          return false;
+      if (fEraseUnencryptedKey)
+      {
+          Erase(std::make_pair(std::string("key"), vchPubKey.Raw()));
+          Erase(std::make_pair(std::string("wkey"), vchPubKey.Raw()));
+      }
+      return true;
     }
 
     bool WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey)
@@ -261,6 +260,8 @@ public:
         return Erase(std::make_pair(std::string("s4c"), strStakeForCharityAddress));
         return Erase(std::make_pair(std::string("s4c2"), strStakeForCharityAddress));
     }
+
+
 
     bool ReadAccount(const std::string& strAccount, CAccount& account);
     bool WriteAccount(const std::string& strAccount, const CAccount& account);

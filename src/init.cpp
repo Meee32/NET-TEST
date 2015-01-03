@@ -94,13 +94,14 @@ void Shutdown(void* parg)
 //        CTxDB().Close();
         bitdb.Flush(false);
         StopNode();
+        UnregisterNodeSignals(GetNodeSignals());
         bitdb.Flush(true);
         boost::filesystem::remove(GetPidFile());
         delete pWalletManager;
         TimerThread::StopTimer(); // for walletpassphrase unlock
         NewThread(ExitTimeout, NULL);
         MilliSleep(50);
-        LogPrintf("ShadowCoin exited\n\n");
+        LogPrintf("Netcoin exited\n\n");
         fExit = true;
 #ifndef QT_GUI
         // ensure non-UI client gets exited here, but let Bitcoin-Qt reach 'return 0;' in bitcoin.cpp
@@ -285,12 +286,21 @@ std::string HelpMessage()
 #if !defined(WIN32) && !defined(QT_GUI)
         "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n" +
 #endif
-        "  -testnet               " + _("Use the test network") + "\n" +
-        "  -debug                 " + _("Output extra debugging information. Implies all other -debug* options") + "\n" +
-        "  -debugnet              " + _("Output extra network debugging information") + "\n" +
-        "  -logtimestamps         " + _("Prepend debug output with timestamp") + "\n" +
-        "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n" +
-        "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n" +
+        strUsage += "  -testnet               " + _("Use the test network") + "\n";
+        strUsage += "  -debug=<category>      " + _("Output debugging information (default: 0, supplying <category> is optional)") + "\n";
+        strUsage += "                             " + _("If <category> is not supplied, output all debugging information.") + "\n";
+        strUsage += "                             " + _("<category> can be:");
+        strUsage +=                               " addrman, alert, db, lock, rand, rpc, selectcoins, mempool, net, keypool,";
+        strUsage +=                               " coinage, coinstake, creation, checkpoint, stakemodifier, stakechecksum, priority";
+        if (fHaveGUI)
+            strUsage += ", qt.\n";
+        else
+            strUsage += ".\n";
+
+
+        strUsage += "  -logtimestamps         " + _("Prepend debug output with timestamp (default: 1)") + "\n";
+        strUsage += "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n";
+        strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
 #ifdef WIN32
         "  -printtodebugger       " + _("Send trace/debug info to debugger") + "\n" +
 #endif
@@ -579,7 +589,7 @@ bool AppInit2()
 #endif
     fPrintToConsole = GetBoolArg("-printtoconsole");
     fPrintToDebugger = GetBoolArg("-printtodebugger");
-    fLogTimestamps = GetBoolArg("-logtimestamps");
+    fLogTimestamps = GetBoolArg("-logtimestamps",true);
 
     if (mapArgs.count("-timeout"))
     {
@@ -608,7 +618,7 @@ bool AppInit2()
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
     // Sanity check
     if (!InitSanityCheck())
-        return InitError(_("Initialization sanity check failed. ShadowCoin is shutting down."));
+        return InitError(_("Initialization sanity check failed. Netcoin is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
     std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
@@ -650,7 +660,7 @@ bool AppInit2()
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("ShadowCoin version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE);
+    LogPrintf("Netcoin version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
     LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
     if (!fLogTimestamps)
         LogPrintf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()));
@@ -691,7 +701,7 @@ bool AppInit2()
                                      " Original wallet.dat saved as wallet.{timestamp}.bak in %s; if"
                                      " your balance or transactions are incorrect you should"
                                      " restore from a backup."), strDataDir);
-            uiInterface.ThreadSafeMessageBox(msg, _("ShadowCoin"), CClientUIInterface::MSG_WARNING);
+            uiInterface.ThreadSafeMessageBox(msg, _("Netcoin"), CClientUIInterface::MSG_WARNING);
         }
         if (r == CDBEnv::RECOVER_FAIL)
             return InitError(_("wallet.dat corrupt, salvage failed"));
@@ -720,6 +730,8 @@ bool AppInit2()
     }
 
     // ********************************************************* Step 6: network initialization
+
+    RegisterNodeSignals(GetNodeSignals());
 
     int nSocksVersion = GetArg("-socks", 5);
 
@@ -856,7 +868,7 @@ bool AppInit2()
         LogPrintf("Shutdown requested. Exiting.\n");
         return false;
     }
-    LogPrintf(" block index %15"PRId64"ms\n", GetTimeMillis() - nStart);
+    LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
 
     if (GetBoolArg("-printblockindex") || GetBoolArg("-printblocktree"))
     {
@@ -877,6 +889,8 @@ bool AppInit2()
                 CBlock block;
                 block.ReadFromDisk(pindex);
                 block.BuildMerkleTree();
+                block.print();
+                printf("\n");
                 nFound++;
             }
         }
@@ -958,7 +972,7 @@ bool AppInit2()
             LogPrintf("Invalid or missing peers.dat; recreating\n");
     }
 
-    LogPrintf("Loaded %i addresses from peers.dat  %"PRId64"ms\n",
+    LogPrintf("Loaded %i addresses from peers.dat  %4ms\n",
            addrman.size(), GetTimeMillis() - nStart);
     
     
@@ -976,9 +990,7 @@ bool AppInit2()
     //// debug print
     LogPrintf("mapBlockIndex.size() = %"PRIszu"\n",   mapBlockIndex.size());
     LogPrintf("nBestHeight = %d\n",            nBestHeight);
-    LogPrintf("setKeyPool.size() = %"PRIszu"\n",      pwalletMain->setKeyPool.size());
-    LogPrintf("mapWallet.size() = %"PRIszu"\n",       pwalletMain->mapWallet.size());
-    LogPrintf("mapAddressBook.size() = %"PRIszu"\n",  pwalletMain->mapAddressBook.size());
+
     BOOST_FOREACH(const wallet_map::value_type& item, pWalletManager->GetWalletMap())
        {
            LogPrintf("Setting properties for wallet \"%s\"...\n", item.first);
@@ -996,7 +1008,7 @@ bool AppInit2()
     // ********************************************************* Step 12: finished
 
     uiInterface.InitMessage(_("Done loading"));
-    printf("Done loading\n");
+    LogPrintf("Done loading\n");
 
     if (!strErrors.str().empty())
         return InitError(strErrors.str());

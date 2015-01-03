@@ -68,7 +68,6 @@ private:
     ClientModel *clientModel;
     WalletModel *walletModel;
     MessageModel *messageModel;
-    QStackedWidget *centralWidget;
     BlockBrowser *blockBrowser;
 
     OverviewPage *overviewPage;
@@ -149,7 +148,7 @@ public slots:
 
         The new items are those between start and end inclusive, under the given parent item.
     */
-    void incomingTransaction(const QModelIndex& parent, int start, int /*end*/);
+    void incomingTransaction(const QModelIndex& parent, int start, int end);
 
     /** Show incoming message notification for new messages.
 

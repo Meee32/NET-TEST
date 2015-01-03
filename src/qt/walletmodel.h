@@ -10,8 +10,8 @@
 class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
-class CWallet;
 class CBitcoinAddress;
+class CWallet;
 class CKeyID;
 class CPubKey;
 class COutput;
@@ -22,6 +22,7 @@ class CCoinControl;
 QT_BEGIN_NAMESPACE
 class QTimer;
 QT_END_NAMESPACE
+
 
 class SendCoinsRecipient
 {
@@ -94,12 +95,8 @@ public:
     // Send coins to a list of recipients
     SendCoinsReturn sendCoins(const QList<SendCoinsRecipient> &recipients, const CCoinControl *coinControl=NULL);
 
-    /** Give user information about reserve balance */
-    quint64 getReserveBalance();
-
     // Wallet encryption
     bool setWalletEncrypted(bool encrypted, const SecureString &passphrase);
-    // Passphrase only needed when unlocking
     // Passphrase only needed when unlocking
     bool setWalletLocked(bool locked, const SecureString &passPhrase=SecureString(), bool formint=false);
     bool changePassphrase(const SecureString &oldPass, const SecureString &newPass);
@@ -114,10 +111,12 @@ public:
     void repairWallet(int& nMismatchSpent, int64_t& nBalanceInQuestion, int& nOrphansFound);
     // PoS Information
     void getStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_t& nWeight);
+    quint64 getTotStakeWeight();
+    /** Give user information about reserve balance */
+    quint64 getReserveBalance();
     // PoS Information about value and time
     void getStakeWeightFromValue(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight);
-    quint64 getTotStakeWeight();
-
+    // setStakeForCharity Wallet Settings
     void setStakeForCharity(bool fStakeForCharity, int& nStakeForCharityPercent,
                             CBitcoinAddress& strStakeForCharityAddress,
                             CBitcoinAddress& strStakeForCharityChangeAddress,
@@ -214,7 +213,7 @@ signals:
     void requireUnlock();
 
     // Asynchronous error notification
-    void error(const QString &title, const QString &message, bool modal);
+    void message(const QString &title, const QString &message, unsigned int style);
 };
 
 

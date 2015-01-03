@@ -13,6 +13,7 @@ class ClientModel;
 
 class QItemSelection;
 class CNodeCombinedStats;
+
 /** Local Bitcoin RPC console. */
 class RPCConsole: public QDialog
 {
@@ -32,6 +33,7 @@ public:
         CMD_ERROR
     };
 
+
 protected:
     virtual bool eventFilter(QObject* obj, QEvent *event);
 
@@ -47,6 +49,8 @@ private slots:
     void on_sldGraphRange_valueChanged(int value);
     /** update traffic statistics */
     void updateTrafficStats(quint64 totalBytesIn, quint64 totalBytesOut);
+    /** clear traffic graph */
+    void on_btnClearTrafficGraph_clicked();
     void resizeEvent(QResizeEvent *event);
     void showEvent(QShowEvent *event);
     void hideEvent(QHideEvent *event);
@@ -78,6 +82,7 @@ signals:
 
 private:
     static QString FormatBytes(quint64 bytes);
+    void startExecutor();
     void setTrafficGraphRange(int mins);
     /** show detailed information on ui about selected node */
     void updateNodeDetail(const CNodeCombinedStats *stats);
@@ -88,12 +93,12 @@ private:
         SUBVERSION_COLUMN_WIDTH = 150,
         PING_COLUMN_WIDTH = 100
     };
+
     Ui::RPCConsole *ui;
     ClientModel *clientModel;
     QStringList history;
     int historyPtr;
 
-    void startExecutor();
     NodeId cachedNodeid;
 };
 

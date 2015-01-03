@@ -138,8 +138,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             // Debit
             //
             int64_t nTxFee = nDebit - wtx.GetValueOut();
-            
-            
+
             for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
             {
                 const CTxOut& txout = wtx.vout[nOut];
@@ -152,7 +151,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     && firstOpCode == OP_RETURN)
                     continue;
 
-                if (wallet->IsMine(txout))
+                if(wallet->IsMine(txout))
                 {
                     // Ignore parts sent to self, as this is usually the change
                     // from a transaction sent back to our own address.
@@ -236,7 +235,6 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
             status.open_for = wtx.nLockTime;
         }
     }
-
     // For generated transactions, determine maturity
     else if(type == TransactionRecord::Generated || TransactionRecord::Generated2)
     {
@@ -270,7 +268,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         }
         else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
         {
-            status.status = TransactionStatus::Offline;
+             status.status = TransactionStatus::Offline;
         }
         else if (status.depth == 0)
         {

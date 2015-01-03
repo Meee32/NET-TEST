@@ -13,7 +13,6 @@
 #include "messagepage.h"
 #include "messagemodel.h"
 #include "shoppingpage.h"
-#include "notificator.h"
 #include "optionsdialog.h"
 #include "aboutdialog.h"
 #include "charitydialog.h"
@@ -31,46 +30,17 @@
 #include "guiutil.h"
 #include "ui_interface.h"
 #include "blockbrowser.h"
+#include "notificator.h"
 
 
-#include <QApplication>
-#include <QMainWindow>
-#include <QMenuBar>
-#include <QMenu>
-#include <QIcon>
-#include <QTabWidget>
-#include <QVBoxLayout>
-#include <QToolBar>
-#include <QStatusBar>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLocale>
-#include <QMessageBox>
-#include <QMimeData>
-#include <QProgressBar>
-#include <QStackedWidget>
-#include <QDateTime>
-#include <QMovie>
-#include <QFileDialog>
-#include <QDesktopServices>
-#include <QTimer>
-#include <QDragEnterEvent>
-#include <QUrl>
-#include <QStyle>
-#include <QStyleFactory>
-#include <QTextStream>
-#include <QTextDocument>
-#include <QSettings>
-#include <iostream>
 
-extern CWallet* pwalletMain;
+
 extern int64_t nLastCoinStakeSearchInterval;
-
+#include <QTextDocument>
 #include <QVBoxLayout>
 #include <QActionGroup>
 #include <QAction>
 #include <QLabel>
-#include <QStackedWidget>
 #if QT_VERSION < 0x050000
 #include <QDesktopServices>
 #else
@@ -96,35 +66,37 @@ WalletView::WalletView(QWidget *parent, BitcoinGUI *_gui):
     blockBrowser = new BlockBrowser(gui);
 
     transactionsPage = new QWidget(this);
-        QVBoxLayout *vbox = new QVBoxLayout();
-        transactionView = new TransactionView(this);
-        vbox->addWidget(transactionView);
-        transactionsPage->setLayout(vbox);
+    QVBoxLayout *vbox = new QVBoxLayout();
+    transactionView = new TransactionView(this);
+    vbox->addWidget(transactionView);
+    transactionsPage->setLayout(vbox);
 
-        addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
+    addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
 
-        shoppingPage = new ShoppingPage(this);
+    shoppingPage = new ShoppingPage(this);
 
-        receiveCoinsPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::ReceivingTab);
+    receiveCoinsPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::ReceivingTab);
 
-        sendCoinsPage = new SendCoinsDialog(this);
-        messagePage   = new MessagePage(this);
+    sendCoinsPage = new SendCoinsDialog(gui);
+    
+    messagePage   = new MessagePage(this);
 
-        signVerifyMessageDialog = new SignVerifyMessageDialog(this);
+    signVerifyMessageDialog = new SignVerifyMessageDialog(gui);
 
-        stakeForCharityDialog = new StakeForCharityDialog(this);
+    stakeForCharityDialog = new StakeForCharityDialog(this);
 
-        addWidget(overviewPage);
-        addWidget(transactionsPage);
-        addWidget(addressBookPage);
-        addWidget(shoppingPage);
-        addWidget(receiveCoinsPage);
-        addWidget(sendCoinsPage);
-        addWidget(messagePage);
-        addWidget(stakeForCharityDialog);
+    addWidget(overviewPage);
+    addWidget(transactionsPage);
+    addWidget(addressBookPage);
+    addWidget(shoppingPage);
+    addWidget(receiveCoinsPage);
+    addWidget(sendCoinsPage);
+    addWidget(messagePage);
+    addWidget(stakeForCharityDialog);
 
     // Clicking on a transaction on the overview page simply sends you to transaction history page
-    connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
+    connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), gui, SLOT(gotoHistoryPage()));
+    connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
 
     // Double-clicking on a transaction on the transaction history page shows details
     connect(transactionView, SIGNAL(doubleClicked(QModelIndex)), transactionView, SLOT(showDetails()));
@@ -269,8 +241,6 @@ void WalletView::createActions()
     connect(lockWalletAction, SIGNAL(triggered(bool)), this, SLOT(lockWallet()));
 }
 
-
-
 void WalletView::setBitcoinGUI(BitcoinGUI *gui)
 {
     this->gui = gui;
@@ -281,6 +251,7 @@ void WalletView::setClientModel(ClientModel *clientModel)
     this->clientModel = clientModel;
     if(clientModel)
     {
+        overviewPage->setClientModel(clientModel);
         addressBookPage->setOptionsModel(clientModel->getOptionsModel());
         receiveCoinsPage->setOptionsModel(clientModel->getOptionsModel());
     }
@@ -337,6 +308,8 @@ void WalletView::setWalletModel(WalletModel *walletModel)
     this->walletModel = walletModel;
     if(walletModel)
     {
+        // Receive and report messages from wallet thread
+        connect(walletModel, SIGNAL(message(QString,QString,unsigned int)), gui, SLOT(message(QString,QString,unsigned int)));
 
         // Put transaction list in tabs
         transactionView->setModel(walletModel);
@@ -363,18 +336,17 @@ void WalletView::setWalletModel(WalletModel *walletModel)
     }
 }
 
-void WalletView::incomingTransaction(const QModelIndex& parent, int start, int /*end*/)
+void WalletView::incomingTransaction(const QModelIndex& parent, int start, int end)
 {
     // Prevent balloon-spam when initial block download is in progress
     if(!walletModel || !clientModel || clientModel->inInitialBlockDownload())
         return;
 
     TransactionTableModel *ttm = walletModel->getTransactionTableModel();
-
-    QString date = ttm->index(start, TransactionTableModel::Date, parent)
-                     .data().toString();
     qint64 amount = ttm->index(start, TransactionTableModel::Amount, parent)
                       .data(Qt::EditRole).toULongLong();
+    QString date = ttm->index(start, TransactionTableModel::Date, parent)
+                     .data().toString();
     QString type = ttm->index(start, TransactionTableModel::Type, parent)
                      .data().toString();
     QString address = ttm->index(start, TransactionTableModel::ToAddress, parent)
@@ -451,13 +423,13 @@ void WalletView::gotoAddressBookPage(bool fExportOnly, bool fExportConnect, bool
 void WalletView::gotoShoppingPage()
 {
     shoppingAction->setChecked(true);
-    centralWidget->setCurrentWidget(shoppingPage);
+    setCurrentWidget(shoppingPage);
 }
 
 void WalletView::gotoMessagePage()
 {
     messageAction->setChecked(true);
-    centralWidget->setCurrentWidget(messagePage);
+    setCurrentWidget(messagePage);
 
     exportAction->setEnabled(true);
     connect(exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));

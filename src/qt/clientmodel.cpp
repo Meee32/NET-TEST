@@ -14,7 +14,7 @@
 #include <QTimer>
 #include <QDebug>
 
-static const int64_t nClientStartupTime = GetTime();
+static const qint64 nClientStartupTime = GetTime();
 double GetPoSKernelPS(const CBlockIndex* blockindex = NULL);
 double GetDifficulty(const CBlockIndex* blockindex);
 double GetPoWMHashPS(const CBlockIndex* blockindex = NULL);
@@ -36,7 +36,7 @@ ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
 
 ClientModel::~ClientModel()
 {
-    unsubscribeFromCoreSignals();
+
 }
 
 int ClientModel::getNumConnections() const
@@ -99,6 +99,7 @@ int ClientModel::getStakeTargetSpacing()
     return nTargetSpacing;
 }
 
+
 quint64 ClientModel::getTotalBytesRecv() const
 {
     return CNode::GetTotalBytesRecv();
@@ -108,6 +109,7 @@ quint64 ClientModel::getTotalBytesSent() const
 {
     return CNode::GetTotalBytesSent();
 }
+
 
 QDateTime ClientModel::getLastBlockDate(bool fProofofStake) const
 {
@@ -128,6 +130,7 @@ void ClientModel::updateTimer()
     TRY_LOCK(cs_main, lockMain);
     if(!lockMain)
         return;
+
     // Some quantities (such as number of blocks) change so fast that we don't want to be notified for each change.
     // Periodically check and update with a timer.
     int newNumBlocks = getNumBlocks();
@@ -138,9 +141,10 @@ void ClientModel::updateTimer()
         cachedNumBlocks = newNumBlocks;
         cachedNumBlocksOfPeers = newNumBlocksOfPeers;
 
-        emit numBlocksChanged(newNumBlocks, newNumBlocksOfPeers);
+        // ensure we return the maximum of newNumBlocksOfPeers and newNumBlocks to not create weird displays in the GUI
+        emit numBlocksChanged(newNumBlocks, std::max(newNumBlocksOfPeers, newNumBlocks));
     }
-    
+
     emit bytesChanged(getTotalBytesRecv(), getTotalBytesSent());
 }
 
@@ -254,7 +258,7 @@ static void NotifyNumConnectionsChanged(ClientModel *clientmodel, int newNumConn
 
 static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, ChangeType status)
 {
-    LogPrintf("NotifyAlertChanged %s status=%i\n", hash.GetHex().c_str(), status);
+    qDebug() << "NotifyAlertChanged : " + QString::fromStdString(hash.GetHex()) + " status=" + QString::number(status);
     QMetaObject::invokeMethod(clientmodel, "updateAlert", Qt::QueuedConnection,
                               Q_ARG(QString, QString::fromStdString(hash.GetHex())),
                               Q_ARG(int, status));

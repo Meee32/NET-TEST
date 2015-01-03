@@ -2,13 +2,13 @@
 
 #include "guiutil.h"
 #include "bitcoinunits.h"
-
 #include "main.h"
 #include "wallet.h"
 #include "txdb.h"
 #include "ui_interface.h"
 #include "base58.h"
 
+#include <string>
 QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
 {
     AssertLockHeld(cs_main);
@@ -26,7 +26,7 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
             return tr("conflicted");
         else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
             return tr("%1/offline").arg(nDepth);
-        else if (nDepth < 10)
+        else if (nDepth < 6)
             return tr("%1/unconfirmed").arg(nDepth);
         else
             return tr("%1 confirmations").arg(nDepth);

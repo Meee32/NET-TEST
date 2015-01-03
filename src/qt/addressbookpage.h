@@ -84,4 +84,4 @@ signals:
     void stakeForCharitySignal(QString addr);
 };
 
-#endif // ADDRESSBOOKDIALOG_H
+#endif // ADDRESSBOOKPAGE_H

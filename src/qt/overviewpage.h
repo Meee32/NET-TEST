@@ -33,15 +33,21 @@ class QLabel;
 class QFrame;
 class QHBoxLayout;
 
+QT_BEGIN_NAMESPACE
+class QModelIndex;
+QT_END_NAMESPACE
+
 /** Overview ("home") page widget */
 class OverviewPage : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit OverviewPage(QWidget *parent = 0);
     ~OverviewPage();
 
     void setModel(WalletModel *model);
+    void setClientModel(ClientModel *clientModel);
     void setWalletModel(WalletModel *walletModel);
     void showOutOfSyncWarning(bool fShow);
 
@@ -75,6 +81,7 @@ private:
     CWallet *wallet;
     ClientModel *modelStatistics;
     ClientModel *clientModel;
+    WalletModel *walletModel;
     qint64 currentBalance;
     qint64 currentTotBalance;
     qint64 currentStake;
@@ -94,7 +101,7 @@ private:
 private slots:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
-    void updateMyWeight(const CBlockIndex *blockindex);
+    void updateMyWeight();
     void updateAlerts(const QString &warnings);
 
 };

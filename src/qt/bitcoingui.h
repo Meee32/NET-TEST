@@ -13,9 +13,6 @@ class TransactionTableModel;
 class WalletView;
 class ClientModel;
 class WalletModel;
-class WalletModel2;
-class MessageModel;
-class MessagePage;
 class WalletStack;
 class TransactionView;
 class OverviewPage;
@@ -32,14 +29,11 @@ class CWalletManager;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
-class QLineEdit;
-class QTableView;
-class QAbstractItemModel;
 class QModelIndex;
 class QProgressBar;
+class QStackedWidget;
 class QListWidget;
 class QPushButton;
-class QStackedWidget;
 class QUrl;
 QT_END_NAMESPACE
 
@@ -65,6 +59,7 @@ protected:
 class BitcoinGUI : public QMainWindow
 {
     Q_OBJECT
+
 public:
     explicit BitcoinGUI(QWidget *parent = 0);
     ~BitcoinGUI();
@@ -77,14 +72,7 @@ public:
         The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
-    void setWalletModel(WalletModel *walletModel);
-    /** Set the message model.
-        The message model represents encryption message database, and offers access to the list of messages, address book and sending
-        functionality.
-    */
-    void setMessageModel(MessageModel *messageModel);
 
-    
     void setWalletManager(CWalletManager *walletManager) { this->walletManager = walletManager; }
     bool addWallet(const QString& name, WalletModel *walletModel);
     QString getCurrentWallet();
@@ -100,11 +88,11 @@ protected:
     void closeEvent(QCloseEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
+    bool eventFilter(QObject *object, QEvent *event);
 
 private:
     ClientModel *clientModel;
     WalletModel *walletModel;
-    MessageModel *messageModel;
 
     CWalletManager *walletManager;
     StakeForCharityDialog *stakeForCharityDialog;
@@ -147,7 +135,6 @@ private:
     QAction *optionsAction;
     QAction *toggleHideAction;
     QAction *encryptWalletAction;
-    QAction *changePassphraseAction;
     QAction *unlockWalletAction;
     QAction *lockWalletAction;
     QAction *checkWalletAction;
@@ -156,7 +143,7 @@ private:
     QAction *backupAllWalletsAction;
     QAction *dumpWalletAction;
     QAction *importWalletAction;
-
+    QAction *changePassphraseAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
     QAction *openTrafficAction;
@@ -168,14 +155,12 @@ private:
     QAction *connectionIconAction;
     QAction *stakingIconAction;
 
-
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
     TransactionView *transactionView;
     RPCConsole *rpcConsole;
 
     QMovie *syncIconMovie;
-
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
 
@@ -233,8 +218,14 @@ public slots:
     */
     void incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address);
    
-    /** Notify the user of an error in the network or transaction handling code. */
-    void error(const QString &title, const QString &message, bool modal);
+    /** Notify the user of an event from the core network or transaction handling code.
+       @param[in] title     the message box / notification title
+       @param[in] message   the displayed text
+       @param[in] style     modality and style definitions (icon and used buttons - buttons only for message boxes)
+                            @see CClientUIInterface::MessageBoxFlags
+       @param[in] detail    optional detail text
+    */
+    void error(const QString &title, const QString &message, unsigned int style, const QString &detail=QString());
     void message(const QString &title, const QString &message, unsigned int style, const QString &detail=QString());
     /** Asks the user whether to pay the transaction fee or to cancel the transaction.
        It is currently not possible to pass a return value to another thread through

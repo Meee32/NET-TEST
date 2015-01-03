@@ -1,4 +1,5 @@
 #include "transactiontablemodel.h"
+
 #include "guiutil.h"
 #include "transactionrecord.h"
 #include "guiconstants.h"
@@ -16,6 +17,7 @@
 #include <QColor>
 #include <QIcon>
 #include <QDateTime>
+#include <QDebug>
 #include <QtAlgorithms>
 
 // Amount column is right-aligned it contains numbers
@@ -67,7 +69,7 @@ public:
      */
     void refreshWallet()
     {
-        LogPrintf("refreshWallet\n");
+        qDebug() << "TransactionTablePriv::refreshWallet";
         cachedWallet.clear();
         {
             LOCK2(cs_main, wallet->cs_wallet);
@@ -86,7 +88,7 @@ public:
      */
     void updateWallet(const uint256 &hash, int status)
     {
-        LogPrintf("updateWallet %s %i\n", hash.ToString().c_str(), status);
+        qDebug() << "TransactionTablePriv::updateWallet : " + QString::fromStdString(hash.ToString()) + " " + QString::number(status);
         {
             LOCK2(cs_main, wallet->cs_wallet);
 
@@ -114,20 +116,21 @@ public:
                     status = CT_DELETED; /* In model, but want to hide, treat as deleted */
             }
 
-            LogPrintf("   inWallet=%i inModel=%i Index=%i-%i showTransaction=%i derivedStatus=%i\n",
-                     inWallet, inModel, lowerIndex, upperIndex, showTransaction, status);
+            qDebug() << " inWallet=" + QString::number(inWallet) + " inModel=" + QString::number(inModel) +
+                        " Index=" + QString::number(lowerIndex) + "-" + QString::number(upperIndex) +
+                        " showTransaction=" + QString::number(showTransaction) + " derivedStatus=" + QString::number(status);
 
             switch(status)
             {
             case CT_NEW:
                 if(inModel)
                 {
-                    LogPrintf("Warning: updateWallet: Got CT_NEW, but transaction is already in model\n");
+                    qDebug() << "TransactionTablePriv::updateWallet : Warning: Got CT_NEW, but transaction is already in model";
                     break;
                 }
                 if(!inWallet)
                 {
-                    LogPrintf("Warning: updateWallet: Got CT_NEW, but transaction is not in wallet\n");
+                    qDebug() << "TransactionTablePriv::updateWallet : Warning: Got CT_NEW, but transaction is not in wallet";
                     break;
                 }
                 if(showTransaction)
@@ -151,7 +154,7 @@ public:
             case CT_DELETED:
                 if(!inModel)
                 {
-                    LogPrintf("Warning: updateWallet: Got CT_DELETED, but transaction is not in model\n");
+                    qDebug() << "TransactionTablePriv::updateWallet : Warning: Got CT_DELETED, but transaction is not in model";
                     break;
                 }
                 // Removed -- remove entire transaction from table
@@ -228,7 +231,7 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
         walletModel(parent),
         priv(new TransactionTablePriv(wallet, this))
 {
-    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Narration") << tr("Amount");
+    columns << QString() << tr("Date") << tr("Type") << tr("Address/Label") << tr("Narration") << tr("Amount");
 
     priv->refreshWallet();
 
@@ -252,8 +255,9 @@ void TransactionTableModel::updateConfirmations()
 {
     // Blocks came in since last poll.
     // Invalidate status (number of confirmations) and (possibly) description
-    //  for all rows. Qt is smart enough to only actually request the data for the
-    //  visible rows.
+    // for all rows. Qt is smart enough to only actually request the data for the
+    // visible rows.
+
     emit dataChanged(index(0, Status), index(priv->size()-1, Status));
     emit dataChanged(index(0, ToAddress), index(priv->size()-1, ToAddress));
 }
@@ -468,6 +472,7 @@ QString TransactionTableModel::formatTxAmount(const TransactionRecord *wtx, bool
 
 QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx) const
 {
+
     switch(wtx->status.status)
     {
     case TransactionStatus::OpenUntilBlock:
@@ -491,10 +496,10 @@ QVariant TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx)
     case TransactionStatus::Conflicted:
         return QIcon(":/icons/transaction_conflicted");
     case TransactionStatus::Immature: {
-        int total = wtx->status.depth + wtx->status.matures_in;
-        int part = (wtx->status.depth * 4 / total) + 1;
-        return QIcon(QString(":/icons/transaction_%1").arg(part));
-        }
+       int total = wtx->status.depth + wtx->status.matures_in;
+       int part = (wtx->status.depth * 4 / total) + 1;
+       return QIcon(QString(":/icons/transaction_%1").arg(part));
+       }
     case TransactionStatus::MaturesWarning:
     case TransactionStatus::NotAccepted:
         return QIcon(":/icons/transaction_0");
@@ -599,7 +604,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
     case FormattedAmountRole:
         return formatTxAmount(rec, false);
     case StatusRole:
-        return rec->status.status;
+         return rec->status.status;
     }
     return QVariant();
 }

@@ -256,7 +256,7 @@ std::vector<std::string> GetFilesAtPath(const boost::filesystem::path& _path,
 
 inline std::string i64tostr(int64_t n)
 {
-    return strprintf("%"PRId64, n);
+    return strprintf("%d", n);
 }
 
 inline std::string itostr(int n)

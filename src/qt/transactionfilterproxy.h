@@ -8,6 +8,7 @@
 class TransactionFilterProxy : public QSortFilterProxyModel
 {
     Q_OBJECT
+
 public:
     explicit TransactionFilterProxy(QObject *parent = 0);
 
@@ -50,11 +51,6 @@ private:
     int limitRows;
     mutable qint64 totalAmount;
     bool showInactive;
-
-signals:
-
-public slots:
-
 };
 
 #endif // TRANSACTIONFILTERPROXY_H

@@ -35,9 +35,8 @@ WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *p
 
 WalletModel::~WalletModel()
 {
-    unsubscribeFromCoreSignals();
-}
 
+}
 qint64 WalletModel::getBalance(const CCoinControl *coinControl) const
 {
     if (coinControl)
@@ -93,6 +92,7 @@ int WalletModel::getWalletVersion() const
 {
     return wallet->GetVersion();
 }
+
 void WalletModel::updateStatus()
 {
     EncryptionStatus newEncryptionStatus = getEncryptionStatus();
@@ -115,12 +115,11 @@ void WalletModel::pollBalanceChanged()
 
     if(nBestHeight != cachedNumBlocks)
     {
-        // Balance and number of transactions might have changed
-        cachedNumBlocks = nBestHeight;
-
-        checkBalanceChanged();
-        if(transactionTableModel)
-            transactionTableModel->updateConfirmations();
+         // Balance and number of transactions might have changed
+         cachedNumBlocks = nBestHeight;
+         checkBalanceChanged();
+         if(transactionTableModel)
+             transactionTableModel->updateConfirmations();
     }
 }
 
@@ -211,7 +210,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         return DuplicateAddress;
     }
 
-    int64_t nBalance = 0;
+    qint64 nBalance = getBalance(coinControl);
     std::vector<COutput> vCoins;
     wallet->AvailableCoins(vCoins, true, coinControl);
 
@@ -232,8 +231,6 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
 
     {
         LOCK2(cs_main, wallet->cs_wallet);
-        
-        CWalletTx wtx;
         
         // Sendmany
         std::vector<std::pair<CScript, int64_t> > vecSend;
@@ -365,7 +362,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
             }
         }
 
-        
+        CWalletTx wtx;
         CReserveKey keyChange(wallet);
         int64_t nFeeRequired = 0;
         int nChangePos = -1;
@@ -400,12 +397,10 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
         {
             return Aborted;
         }
-        
         if(!wallet->CommitTransaction(wtx, keyChange))
         {
             return TransactionCommitFailed;
         }
-        
         hex = QString::fromStdString(wtx.GetHash().GetHex());
     }
 
@@ -450,29 +445,6 @@ AddressTableModel *WalletModel::getAddressTableModel()
 TransactionTableModel *WalletModel::getTransactionTableModel()
 {
     return transactionTableModel;
-}
-
-void WalletModel::checkWallet(int& nMismatchSpent, int64_t& nBalanceInQuestion, int& nOrphansFound)
-{
-    wallet->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound, true);
-}
-
-void WalletModel::repairWallet(int& nMismatchSpent, int64_t& nBalanceInQuestion, int& nOrphansFound)
-{
-    wallet->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound);
-}
-
-void WalletModel::getStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_t& nWeight)
-{
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain)
-        return;
-
-    TRY_LOCK(wallet->cs_wallet, lockWallet);
-    if (!lockWallet)
-      return;
-
-    wallet->GetStakeWeight(*wallet, nMinWeight, nMaxWeight, nWeight);
 }
 
 WalletModel::EncryptionStatus WalletModel::getEncryptionStatus() const
@@ -538,6 +510,22 @@ bool WalletModel::setWalletLocked(bool locked, const SecureString &passPhrase, b
     }
 }
 
+bool WalletModel::changePassphrase(const SecureString &oldPass, const SecureString &newPass)
+{
+    bool retval;
+    {
+        LOCK(wallet->cs_wallet);
+        wallet->Lock(); // Make sure wallet is locked before attempting pass change
+        retval = wallet->ChangeWalletPassphrase(oldPass, newPass);
+    }
+    return retval;
+}
+
+bool WalletModel::backupWallet(const QString &filename)
+{
+    return BackupWallet(*wallet, filename.toLocal8Bit().data(), false);
+}
+
 bool WalletModel::backupAllWallets(const QString &filename)
 {
 
@@ -552,26 +540,6 @@ bool WalletModel::backupAllWallets(const QString &filename)
 
     }
     return mretval;
-}
-
-quint64 WalletModel::getTotStakeWeight()
-{
-
-    quint64 nTotWeight = 0;
-    BOOST_FOREACH(const wallet_map::value_type& item, pWalletManager->GetWalletMap())
-    {
-        CWallet* pwallet = pWalletManager->GetWallet(item.first.c_str()).get();
-        uint64_t nMinWeight = 0 ,nMaxWeight =  0, nWeight = 0;
-        pwallet->GetStakeWeight(*pwallet, nMinWeight,nMaxWeight,nWeight);
-
-        nTotWeight+=nWeight;
-    }
-    return nTotWeight;
-}
-
-void WalletModel::getStakeWeightFromValue(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight)
-{
-    wallet->GetStakeWeightFromValue(nTime, nValue, nWeight);
 }
 
 void WalletModel::setStakeForCharity(bool fStakeForCharity, int& nStakeForCharityPercent,
@@ -636,36 +604,64 @@ bool WalletModel::importWallet(const QString &filename)
     return ImportWallet(wallet, filename.toLocal8Bit().data());
 }
 
+void WalletModel::getStakeWeight(uint64_t& nMinWeight, uint64_t& nMaxWeight, uint64_t& nWeight)
+{
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain)
+        return;
+
+    TRY_LOCK(wallet->cs_wallet, lockWallet);
+    if (!lockWallet)
+      return;
+
+    wallet->GetStakeWeight(*wallet, nMinWeight, nMaxWeight, nWeight);
+}
+
 quint64 WalletModel::getReserveBalance()
 {
     return wallet->nReserveBalance;
 }
+
+quint64 WalletModel::getTotStakeWeight()
+{
+
+    quint64 nTotWeight = 0;
+    BOOST_FOREACH(const wallet_map::value_type& item, pWalletManager->GetWalletMap())
+    {
+        CWallet* pwallet = pWalletManager->GetWallet(item.first.c_str()).get();
+        uint64_t nMinWeight = 0 ,nMaxWeight =  0, nWeight = 0;
+        pwallet->GetStakeWeight(*pwallet, nMinWeight,nMaxWeight,nWeight);
+
+        nTotWeight+=nWeight;
+    }
+    return nTotWeight;
+}
+
+void WalletModel::getStakeWeightFromValue(const int64_t& nTime, const int64_t& nValue, uint64_t& nWeight)
+{
+    wallet->GetStakeWeightFromValue(nTime, nValue, nWeight);
+}
+
+void WalletModel::checkWallet(int& nMismatchSpent, int64_t& nBalanceInQuestion, int& nOrphansFound)
+{
+    wallet->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound, true);
+}
+
 
 bool WalletModel::isMine(const CBitcoinAddress &address)
 {
     return IsMine(*wallet, address.Get());
 }
 
-bool WalletModel::changePassphrase(const SecureString &oldPass, const SecureString &newPass)
+void WalletModel::repairWallet(int& nMismatchSpent, int64_t& nBalanceInQuestion, int& nOrphansFound)
 {
-    bool retval;
-    {
-        LOCK(wallet->cs_wallet);
-        wallet->Lock(); // Make sure wallet is locked before attempting pass change
-        retval = wallet->ChangeWalletPassphrase(oldPass, newPass);
-    }
-    return retval;
-}
-
-bool WalletModel::backupWallet(const QString &filename)
-{
-    return BackupWallet(*wallet, filename.toLocal8Bit().data(), false);
+    wallet->FixSpentCoins(nMismatchSpent, nBalanceInQuestion, nOrphansFound);
 }
 
 // Handlers for core signals
 static void NotifyKeyStoreStatusChanged(WalletModel *walletmodel, CCryptoKeyStore *wallet)
 {
-    LogPrintf("NotifyKeyStoreStatusChanged\n");
+    qDebug() << "NotifyKeyStoreStatusChanged";
     QMetaObject::invokeMethod(walletmodel, "updateStatus", Qt::QueuedConnection);
 }
 

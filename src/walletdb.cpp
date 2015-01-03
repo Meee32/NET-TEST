@@ -5,11 +5,13 @@
 
 #include <iostream>
 #include <fstream>
+
 #include "walletdb.h"
 #include "wallet.h"
-#include <boost/version.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/version.hpp>
 #include <boost/algorithm/string.hpp>
+
 
 using namespace std;
 using namespace boost;
@@ -256,12 +258,12 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                 wss.fAnyUnordered = true;
 
             //// debug print
-            //printf("LoadWallet  %s\n", wtx.GetHash().ToString().c_str());
-            //printf(" %12"PRId64"  %s  %s  %s\n",
+            // printf("LoadWallet  %s\n", wtx.GetHash().ToString());
+            // printf(" %12d  %s  %s  %s\n",
             //    wtx.vout[0].nValue,
-            //    DateTimeStrFormat("%x %H:%M:%S", wtx.GetBlockTime()).c_str(),
-            //    wtx.hashBlock.ToString().substr(0,20).c_str(),
-            //    wtx.mapValue["message"].c_str());
+            //    DateTimeStrFormat("%x %H:%M:%S", wtx.GetBlockTime()),
+            //    wtx.hashBlock.ToString().substr(0,20),
+            //    wtx.mapValue["message"];
         } else
         if (strType == "sxAddr")
         {
@@ -731,7 +733,7 @@ void ThreadFlushWalletDB(void* parg)
                     map<string, int>::iterator mi = bitdb.mapFileUseCount.find(strFile);
                     if (mi != bitdb.mapFileUseCount.end())
                     {
-                        LogPrintf("Flushing wallet.dat\n");
+                        LogPrint("db", "Flushing wallet.dat\n");
                         nLastFlushed = nWalletDBUpdated;
                         int64_t nStart = GetTimeMillis();
 
@@ -868,6 +870,7 @@ bool DumpWallet(CWallet* pwallet, const string& strDest)
      }
    return false;
 }
+
 
 bool ImportWallet(CWallet *pwallet, const string& strLocation)
 {

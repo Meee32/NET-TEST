@@ -250,6 +250,7 @@ void TransactionView::chooseType(int idx)
         return;
     transactionProxyModel->setTypeFilter(
         typeWidget->itemData(idx).toInt());
+
     updateTotalAmount();
 }
 
@@ -258,6 +259,7 @@ void TransactionView::changedPrefix(const QString &prefix)
     if(!transactionProxyModel)
         return;
     transactionProxyModel->setAddressPrefix(prefix);
+
     updateTotalAmount();
 }
 
@@ -327,6 +329,11 @@ void TransactionView::copyAddress()
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::AddressRole);
 }
 
+void TransactionView::copyTxID()
+{
+    GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::TxIDRole);
+}
+
 void TransactionView::copyLabel()
 {
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::LabelRole);
@@ -335,11 +342,6 @@ void TransactionView::copyLabel()
 void TransactionView::copyAmount()
 {
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::FormattedAmountRole);
-}
-
-void TransactionView::copyTxID()
-{
-    GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::TxIDRole);
 }
 
 void TransactionView::editLabel()
@@ -413,6 +415,12 @@ void TransactionView::showBroswer()
     emit blockBrowserSignal(transactionId);
 }
 
+void TransactionView::enableDateRangeWidget(bool enable)
+{
+    dateFrom->setEnabled(enable);
+    dateTo->setEnabled(enable);
+}
+
 QWidget *TransactionView::createDateRangeWidget()
 {
     dateRangeWidget = new QFrame();
@@ -444,6 +452,7 @@ QWidget *TransactionView::createDateRangeWidget()
     totalAmountWidget->setText("0");
     totalAmountWidget->setFixedWidth(100);
     layout->addWidget(totalAmountWidget);
+
     // Hide by default
     dateRangeWidget->setVisible(false);
 

@@ -14,6 +14,7 @@ class WalletModel;
 class TransactionTableModel : public QAbstractTableModel
 {
     Q_OBJECT
+
 public:
     explicit TransactionTableModel(CWallet* wallet, WalletModel *parent = 0);
     ~TransactionTableModel();
@@ -86,5 +87,5 @@ public slots:
     friend class TransactionTablePriv;
 };
 
-#endif
+#endif // TRANSACTIONTABLEMODEL_H
 

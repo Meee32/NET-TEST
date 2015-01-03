@@ -1,13 +1,11 @@
 #ifndef NOTIFICATOR_H
 #define NOTIFICATOR_H
 
-
-#include <QIcon>
 #include <QObject>
+#include <QIcon>
 
 QT_BEGIN_NAMESPACE
 class QSystemTrayIcon;
-
 #ifdef USE_DBUS
 class QDBusInterface;
 #endif
@@ -22,7 +20,7 @@ public:
     /** Create a new notificator.
        @note Ownership of trayIcon is not transferred to this object.
     */
-    Notificator(const QString &programName, QSystemTrayIcon *trayIcon, QWidget *parent);
+    Notificator(const QString &programName=QString(), QSystemTrayIcon *trayIcon=0, QWidget *parent=0);
     ~Notificator();
 
     // Message class

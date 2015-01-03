@@ -23,6 +23,7 @@ QT_END_NAMESPACE
 class TransactionView : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit TransactionView(QWidget *parent = 0);
 
@@ -62,6 +63,7 @@ private:
 
 private:
     void updateTotalAmount();
+    void enableDateRangeWidget(bool enable);
 
 private slots:
     void contextualMenu(const QPoint &);
