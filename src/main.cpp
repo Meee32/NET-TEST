@@ -49,10 +49,8 @@ unsigned int nModifierInterval  = 10 * 60;          // time to elapse before new
 int nCoinbaseMaturity = 5;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
-
 uint256 nBestChainTrust = 0;
 uint256 nBestInvalidTrust = 0;
-
 uint256 hashBestChain = 0;
 CBlockIndex* pindexBest = NULL;
 int64_t nTimeBestReceived = 0;
@@ -65,6 +63,7 @@ CMedianFilter<int> cPeerBlockCounts(5, 0); // Amount of blocks that other nodes 
 map<uint256, CBlock*> mapOrphanBlocks;
 multimap<uint256, CBlock*> mapOrphanBlocksByPrev;
 set<pair<COutPoint, unsigned int> > setStakeSeenOrphan;
+
 
 map<uint256, CTransaction> mapOrphanTransactions;
 map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
@@ -85,6 +84,7 @@ int64_t nSplitThreshold = GetProofOfWorkReward(0, 0, 0);
 int64_t nCombineThreshold = GetProofOfWorkReward(0, 0, 0) * 2;
 
 extern enum Checkpoints::CPMode CheckpointsMode;
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -117,22 +117,29 @@ void UnregisterAllWallets()
         setpwalletRegistered.clear();
     }
 }
+
 // check whether the passed transaction is from us
 bool static IsFromMe(CTransaction& tx)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        if (pwallet->IsFromMe(tx))
-            return true;
-    return false;
+    {
+          LOCK(cs_setpwalletRegistered);
+          BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+              if (pwallet->IsFromMe(tx))
+                  return true;
+    }
+      return false;
 }
 
 // get the wallet transaction with the given hash (if it exists)
 bool static GetTransaction(const uint256& hashTx, CWalletTx& wtx)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        if (pwallet->GetTransaction(hashTx,wtx))
-            return true;
-    return false;
+    {
+         LOCK(cs_setpwalletRegistered);
+         BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+             if (pwallet->GetTransaction(hashTx,wtx))
+                 return true;
+         return false;
+     }
 }
 
 // erases transaction with the given hash from all wallets
@@ -150,6 +157,7 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
         // ppcoin: wallets need to refund inputs when disconnecting coinstake
         if (tx.IsCoinStake())
         {
+            LOCK(cs_setpwalletRegistered);
             BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
                 if (pwallet->IsFromMe(tx))
                     pwallet->DisableTransaction(tx);
@@ -157,46 +165,75 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
         return;
     }
 
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->AddToWalletIfInvolvingMe(tx, pblock, fUpdate);
+    {
+        LOCK(cs_setpwalletRegistered);
+        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+            pwallet->AddToWalletIfInvolvingMe(tx, pblock, fUpdate);
+    }
+}
+
+// Add wallet transactions that aren't already in a block to mapTransactions
+void ReacceptWalletTransactions()
+{
+    {
+        LOCK(cs_setpwalletRegistered);
+        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+        pwallet->ReacceptWalletTransactions();
+    }
 }
 
 // notify wallets about a new best chain
 void static SetBestChain(const CBlockLocator& loc)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->SetBestChain(loc);
+   {
+        LOCK(cs_setpwalletRegistered);
+        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+            pwallet->SetBestChain(loc);
+   }
 }
 
 // notify wallets about an updated transaction
 void static UpdatedTransaction(const uint256& hashTx)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->UpdatedTransaction(hashTx);
+   {
+          LOCK(cs_setpwalletRegistered);
+          BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+              pwallet->UpdatedTransaction(hashTx);
+   }
+
 }
 
 // dump all wallets
 void static PrintWallets(const CBlock& block)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->PrintWallet(block);
+   {
+        LOCK(cs_setpwalletRegistered);
+        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+            pwallet->PrintWallet(block);
+   }
+
 }
 
 // notify wallets about an incoming inventory (for request counts)
 void static Inventory(const uint256& hash)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->Inventory(hash);
+   {
+        LOCK(cs_setpwalletRegistered);
+        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+            pwallet->Inventory(hash);
+   }
+
 }
 
 // ask wallets to resend their transactions
 void ResendWalletTransactions(bool fForce)
 {
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->ResendWalletTransactions(fForce);
+   {
+        LOCK(cs_setpwalletRegistered);
+        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
+            pwallet->ResendWalletTransactions(fForce);
+   }
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -299,7 +336,7 @@ bool AddOrphanTx(const CTransaction& tx)
 
     if (nSize > 5000)
     {
-        printf("ignoring large orphan tx (size: %"PRIszu", hash: %s)\n", nSize, hash.ToString().substr(0,10).c_str());
+        LogPrint("mempool", "ignoring large orphan tx (size: %"PRIszu", hash: %s)\n", nSize, hash.ToString().substr(0,10));
         return false;
     }
 
@@ -307,7 +344,7 @@ bool AddOrphanTx(const CTransaction& tx)
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
         mapOrphanTransactionsByPrev[txin.prevout.hash].insert(hash);
 
-    printf("stored orphan tx %s (mapsz %"PRIszu")\n", hash.ToString().substr(0,10).c_str(),
+    LogPrint("mempool", "stored orphan tx %s (mapsz %"PRIszu")\n", hash.ToString().substr(0,10),
         mapOrphanTransactions.size());
     return true;
 }
@@ -323,6 +360,7 @@ void static EraseOrphanTx(uint256 hash)
         if (mapOrphanTransactionsByPrev[txin.prevout.hash].empty())
             mapOrphanTransactionsByPrev.erase(txin.prevout.hash);
     }
+
     mapOrphanTransactions.erase(hash);
 }
 
@@ -1914,16 +1952,6 @@ bool CBlock::SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew)
         mempool.remove(tx);
 
     return true;
-}
-
-// Add wallet transactions that aren't already in a block to mapTransactions
-void ReacceptWalletTransactions()
-{
-    {
-        LOCK(cs_setpwalletRegistered);
-        BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->ReacceptWalletTransactions();
-    }
 }
 
 bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)

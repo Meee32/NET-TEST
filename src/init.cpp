@@ -31,7 +31,6 @@ using namespace boost;
 CWalletManager* pWalletManager;
 // TODO: get rid of pwalletMain
 CWallet* pwalletMain;
-
 bool fEnforceCanonical;
 unsigned int nNodeLifespan;
 unsigned int nDerivationMethodIndex;
@@ -569,7 +568,6 @@ bool AppInit2()
     if (GetBoolArg("-debugnet", false))
         InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
 
-    
     bitdb.SetDetach(GetBoolArg("-detachdb", false));
 
 #if !defined(WIN32) && !defined(QT_GUI)

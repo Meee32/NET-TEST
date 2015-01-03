@@ -2,6 +2,7 @@
 #define BITCOINADDRESSVALIDATOR_H
 
 #include <QRegExpValidator>
+#include <QValidator>
 
 /** Base48 entry widget validator.
    Corrects near-miss characters and refuses characters that are no part of base48.
@@ -16,10 +17,6 @@ public:
 
     //static const int MaxAddressLength = 35;
     static const int MaxAddressLength = 128; // accept stealth addresses
-signals:
-
-public slots:
-
 };
 
 #endif // BITCOINADDRESSVALIDATOR_H

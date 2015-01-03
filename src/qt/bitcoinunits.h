@@ -7,8 +7,9 @@
 /** Bitcoin unit definitions. Encapsulates parsing and formatting
    and serves as list model for drop-down selection boxes.
 */
-class BitcoinUnits: public QAbstractListModel
+class BitcoinUnits : public QAbstractListModel
 {
+
 public:
     explicit BitcoinUnits(QObject *parent);
 
@@ -60,6 +61,7 @@ public:
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     ///@}
+
 private:
     QList<BitcoinUnits::Unit> unitlist;
 };

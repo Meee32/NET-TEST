@@ -9,6 +9,7 @@ class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
 
+
 QT_BEGIN_NAMESPACE
 class QDateTime;
 class QTimer;
@@ -25,6 +26,7 @@ enum BlockSource {
 class ClientModel : public QObject
 {
     Q_OBJECT
+
 public:
     explicit ClientModel(OptionsModel *optionsModel, QObject *parent = 0);
     ~ClientModel();
@@ -34,18 +36,19 @@ public:
 
     int getNumConnections() const;
     int getNumBlocks() const;
-    int getLastPoSBlock();
-    int getNumBlocksAtStartup();
     int getProtocolVersion() const;
     qint64 getMoneySupply();
     double getDifficulty(bool fProofofStake=false);
     double getPoWMHashPS();
     double getProofOfStakeReward();
+    int getLastPoSBlock();
+    int getNumBlocksAtStartup();
     double getPosKernalPS();
     int getStakeTargetSpacing();
 
     quint64 getTotalBytesRecv() const;
     quint64 getTotalBytesSent() const;
+
 
     QDateTime getLastBlockDate(bool fProofofStake=false) const;
 
@@ -88,7 +91,7 @@ signals:
     void walletRemoved(const QString &name);
 
     //! Asynchronous error notification
-    void error(const QString &title, const QString &message, bool modal);
+    void error(const QString &title, const QString &message, unsigned int style);
 
 public slots:
     void updateTimer();

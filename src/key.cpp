@@ -403,8 +403,8 @@ bool CKey::SignCompact(uint256 hash, std::vector<unsigned char>& vchSig)
 
         if (nRecId == -1)
         {
-            ECDSA_SIG_free(sig);
-            throw key_error("CKey::SignCompact() : unable to construct recoverable key");
+           ECDSA_SIG_free(sig);
+           throw key_error("CKey::SignCompact() : unable to construct recoverable key");
         }
 
         vchSig[0] = nRecId+27+(fCompressedPubKey ? 4 : 0);
@@ -486,9 +486,10 @@ bool CKey::IsValid()
 bool ECC_InitSanityCheck() {
     EC_KEY *pkey = EC_KEY_new_by_curve_name(NID_secp256k1);
     if(pkey == NULL)
-        return false;
+       return false;
     EC_KEY_free(pkey);
 
-    // TODO Is there more EC functionality that could be missing?
-    return true;
+  // TODO Is there more EC functionality that could be missing?
+  return true;
+
 }

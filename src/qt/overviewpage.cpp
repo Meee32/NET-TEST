@@ -194,7 +194,7 @@ void OverviewPage::setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBa
     ui->labelImmature->setVisible(showImmature);
     ui->labelImmatureText->setVisible(showImmature);
 
-    qint64 interest = model->getTransactionTableModel()->getInterestGenerated();
+    qint64 interest = walletModel->getTransactionTableModel()->getInterestGenerated();
      // Setup display values for 'interest summary' widget at bottom right
     ui->labelInterest->setText(BitcoinUnits::formatWithUnit(unit, interest));
 }

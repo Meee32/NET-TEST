@@ -23,7 +23,6 @@ ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), optionsModel(optionsModel), peerTableModel(0),
     cachedNumBlocks(0), cachedNumBlocksOfPeers(0), numBlocksAtStartup(-1), pollTimer(0)
 {
-    numBlocksAtStartup = -1;
 
     peerTableModel = new PeerTableModel(this);
     pollTimer = new QTimer(this);
@@ -99,7 +98,6 @@ int ClientModel::getStakeTargetSpacing()
     return nTargetSpacing;
 }
 
-
 quint64 ClientModel::getTotalBytesRecv() const
 {
     return CNode::GetTotalBytesRecv();
@@ -173,13 +171,11 @@ void ClientModel::updateAlert(const QString &hash, int status)
         CAlert alert = CAlert::getAlertByHash(hash_256);
         if(!alert.IsNull())
         {
-            emit error(tr("Network Alert"), QString::fromStdString(alert.strStatusBar), false);
+            emit error(tr("Network Alert"), QString::fromStdString(alert.strStatusBar), CClientUIInterface::ICON_ERROR);
         }
     }
 
-    // Emit a numBlocksChanged when the status message changes,
-    // so that the view recomputes and updates the status bar.
-    emit numBlocksChanged(getNumBlocks(), getNumBlocksOfPeers());
+    emit alertsChanged(getStatusBarWarnings());
 }
 
 bool ClientModel::isTestNet() const
@@ -290,6 +286,7 @@ void ClientModel::subscribeToCoreSignals()
     uiInterface.NotifyAlertChanged.connect(boost::bind(NotifyAlertChanged, this, _1, _2));
     uiInterface.NotifyWalletAdded.connect(boost::bind(NotifyWalletAdded,this,_1));
     uiInterface.NotifyWalletRemoved.connect(boost::bind(NotifyWalletRemoved,this,_1));
+
 }
 
 void ClientModel::unsubscribeFromCoreSignals()

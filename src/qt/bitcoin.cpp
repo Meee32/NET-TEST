@@ -17,6 +17,7 @@
 #include "ui_interface.h"
 #include "qtipcserver.h"
 
+
 #include <QMessageBox>
 #if QT_VERSION < 0x050000
 #include <QTextCodec>
@@ -92,7 +93,7 @@ static void InitMessage(const std::string &message)
         splashref->showMessage(QString::fromStdString(message+'\n'+'\n') + QString::fromStdString(FormatFullVersion().c_str()), Qt::AlignBottom|Qt::AlignHCenter, QColor(255,255,200));
         QApplication::instance()->processEvents();
     }
-
+    LogPrintf("init message: %s\n", message);
 }
 
 static void QueueShutdown()
@@ -142,6 +143,7 @@ int main(int argc, char *argv[])
         strBitcoinURIQueueName = BITCOINURI_QUEUE_NAME_TESTNET;
     else
         strBitcoinURIQueueName = BITCOINURI_QUEUE_NAME_MAINNET;
+
     // Do this early as we don't want to bother initializing if we are just calling IPC
     ipcScanRelay(argc, argv);
 
