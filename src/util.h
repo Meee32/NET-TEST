@@ -15,6 +15,7 @@
 #endif
 
 #include "tinyformat.h"
+
 #include <map>
 #include <list>
 #include <utility>
@@ -62,6 +63,8 @@ static const int64_t CENT = 1000000;
 }
 void LogStackTrace();
 #endif
+
+
 /* Format characters for (s)size_t and ptrdiff_t */
 #if defined(_MSC_VER) || defined(__MSVCRT__)
   /* (s)size_t and ptrdiff_t have the same size specifier in MSVC:
@@ -119,8 +122,6 @@ inline void MilliSleep(int64_t n)
     boost::this_thread::sleep(boost::posix_time::milliseconds(n));
 #endif
 }
-
-
 
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
@@ -186,6 +187,7 @@ static inline bool error(const char* format)
     return false;
 }
 
+
 void PrintException(std::exception* pex, const char* pszThread);
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 void ParseString(const std::string& str, char c, std::vector<std::string>& v);
@@ -205,7 +207,6 @@ std::string DecodeBase32(const std::string& str);
 std::string EncodeBase32(const unsigned char* pch, size_t len);
 std::string EncodeBase32(const std::string& str);
 std::string EncodeDumpTime(int64_t nTime);
-
 int64_t DecodeDumpTime(const std::string& s);
 std::string EncodeDumpString(const std::string &str);
 std::string DecodeDumpString(const std::string &str);
@@ -248,10 +249,6 @@ namespace file_option_flags
 
 std::vector<std::string> GetFilesAtPath(const boost::filesystem::path& _path,
                                         unsigned int flags = file_option_flags::REGULAR_FILES | file_option_flags::DIRECTORIES);
-
-
-
-
 
 
 inline std::string i64tostr(int64_t n)
@@ -311,6 +308,7 @@ inline std::string leftTrim(std::string src, char chr)
 
     return src;
 }
+
 
 template<typename T>
 std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
@@ -437,6 +435,7 @@ bool SoftSetArg(const std::string& strArg, const std::string& strValue);
  * @return true if argument gets set, false if it already had a value
  */
 bool SoftSetBoolArg(const std::string& strArg, bool fValue);
+
 
 /**
  * MWC RNG of George Marsaglia

@@ -91,7 +91,7 @@ signals:
     void walletRemoved(const QString &name);
 
     //! Asynchronous error notification
-    void error(const QString &title, const QString &message, unsigned int style);
+    void message(const QString &title, const QString &message, unsigned int style);
 
 public slots:
     void updateTimer();

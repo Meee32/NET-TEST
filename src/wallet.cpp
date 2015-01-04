@@ -161,12 +161,12 @@ bool CWallet::Lock()
             // -- CStealthAddress are only sorted on spend_pubkey
             CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
             if (fDebug)
-                printf("Recrypting stealth key %s\n", sxAddr.Encoded().c_str());
+                LogPrintf("Recrypting stealth key %s\n", sxAddr.Encoded());
             
             sxAddrTemp.scan_pubkey = sxAddr.scan_pubkey;
             if (!wdb.ReadStealthAddress(sxAddrTemp))
             {
-                printf("Error: Failed to read stealth key from db %s\n", sxAddr.Encoded().c_str());
+                LogPrintf("Error: Failed to read stealth key from db %s\n", sxAddr.Encoded());
                 continue;
             }
             sxAddr.spend_secret = sxAddrTemp.spend_secret;
@@ -360,7 +360,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             CStealthAddress &sxAddr = const_cast<CStealthAddress&>(*it);
             
             if (fDebug)
-                printf("Encrypting stealth key %s\n", sxAddr.Encoded().c_str());
+                LogPrintf("Encrypting stealth key %s\n", sxAddr.Encoded());
             
             std::vector<unsigned char> vchCryptedSecret;
             
@@ -371,7 +371,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             uint256 iv = Hash(sxAddr.spend_pubkey.begin(), sxAddr.spend_pubkey.end());
             if (!EncryptSecret(vMasterKey, vchSecret, iv, vchCryptedSecret))
             {
-                printf("Error: Failed encrypting stealth key %s\n", sxAddr.Encoded().c_str());
+                LogPrintf("Error: Failed encrypting stealth key %s\n", sxAddr.Encoded());
                 continue;
             };
             
@@ -481,7 +481,6 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx, bool fBlock)
            {
               wtx.MarkUnspent(&txout - &tx.vout[0]);
               wtx.WriteToDisk();
-              NotifyTransactionChanged(this, hash, CT_UPDATED);
            }
        }
 
@@ -831,8 +830,8 @@ void CWalletTx::GetAmounts(list<pair<CTxDestination, int64_t> >& listReceived,
         CTxDestination address;
         if (!ExtractDestination(txout.scriptPubKey, address))
         {
-            printf("CWalletTx::GetAmounts: Unknown transaction type found, txid %s\n",
-                   this->GetHash().ToString().c_str());
+            LogPrintf("CWalletTx::GetAmounts: Unknown transaction type found, txid %s\n",
+                   this->GetHash().ToString());
             address = CNoDestination();
         }
 
@@ -842,7 +841,7 @@ void CWalletTx::GetAmounts(list<pair<CTxDestination, int64_t> >& listReceived,
 
         // If we are receiving the output, add it as a "received" entry
         if (fIsMine)
-            listReceived.push_back(make_pair(address, txout.nValue));
+           listReceived.push_back(make_pair(address, txout.nValue));
     }
 
 }
@@ -923,7 +922,7 @@ void CWalletTx::AddSupportingTransactions(CTxDB& txdb)
                 }
                 else
                 {
-                    printf("ERROR: AddSupportingTransactions() : unsupported transaction\n");
+                    LogPrintf("ERROR: AddSupportingTransactions() : unsupported transaction\n");
                     continue;
                 }
 
@@ -1001,7 +1000,7 @@ void CWallet::ReacceptWalletTransactions()
                 // Update fSpent if a tx got spent somewhere else by a copy of wallet.dat
                 if (txindex.vSpent.size() != wtx.vout.size())
                 {
-                    printf("ERROR: ReacceptWalletTransactions() : txindex.vSpent.size() %"PRIszu" != wtx.vout.size() %"PRIszu"\n", txindex.vSpent.size(), wtx.vout.size());
+                    LogPrintf("ERROR: ReacceptWalletTransactions() : txindex.vSpent.size() %"PRIszu" != wtx.vout.size() %"PRIszu"\n", txindex.vSpent.size(), wtx.vout.size());
                     continue;
                 }
                 for (unsigned int i = 0; i < txindex.vSpent.size(); i++)
@@ -1017,7 +1016,7 @@ void CWallet::ReacceptWalletTransactions()
                 }
                 if (fUpdated)
                 {
-                    printf("ReacceptWalletTransactions found spent coin %s NET %s\n", FormatMoney(wtx.GetCredit()).c_str(), wtx.GetHash().ToString().c_str());
+                    LogPrintf("ReacceptWalletTransactions found spent coin %snet %s\n", FormatMoney(wtx.GetCredit()), wtx.GetHash().ToString());
                     wtx.MarkDirty();
                     wtx.WriteToDisk();
                 }
@@ -1054,7 +1053,7 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb)
         uint256 hash = GetHash();
         if (!txdb.ContainsTx(hash))
         {
-            printf("Relaying wtx %s\n", hash.ToString().substr(0,10).c_str());
+            LogPrintf("Relaying wtx %s\n", hash.ToString().substr(0,10));
             RelayTransaction((CTransaction)*this, hash);
         }
     }
@@ -1068,6 +1067,7 @@ void CWalletTx::RelayWalletTransaction()
 
 void CWallet::ResendWalletTransactions(bool fForce)
 {
+
     if (!fForce)
     {
         // Do this infrequently and randomly to avoid giving away
@@ -1085,10 +1085,10 @@ void CWallet::ResendWalletTransactions(bool fForce)
         if (nTimeBestReceived < nLastTime)
             return;
         nLastTime = GetTime();
-    }
+     }
 
     // Rebroadcast any of our txes that aren't in a block yet
-    printf("ResendWalletTransactions()\n");
+    LogPrintf("ResendWalletTransactions()\n");
     CTxDB txdb("r");
     {
         LOCK(cs_wallet);
@@ -1108,7 +1108,7 @@ void CWallet::ResendWalletTransactions(bool fForce)
             if (wtx.CheckTransaction())
                 wtx.RelayWalletTransaction(txdb);
             else
-                printf("ResendWalletTransactions() : CheckTransaction failed for transaction %s\n", wtx.GetHash().ToString().c_str());
+                LogPrintf("ResendWalletTransactions() : CheckTransaction failed for transaction %s\n", wtx.GetHash().ToString());
         }
     }
 }
@@ -1122,7 +1122,6 @@ void CWallet::ResendWalletTransactions(bool fForce)
 //
 // Actions
 //
-
 
 int64_t CWallet::GetBalance() const
 {
@@ -1139,8 +1138,6 @@ int64_t CWallet::GetBalance() const
 
     return nTotal;
 }
-
-
 
 int64_t CWallet::GetUnconfirmedBalance() const
 {
@@ -1203,7 +1200,6 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue &&
                (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                     vCoins.push_back(COutput(pcoin, i, nDepth));
-
         }
     }
 }
@@ -1243,6 +1239,8 @@ static void ApproximateBestSubset(vector<pair<int64_t, pair<const CWalletTx*,uns
 
     vfBest.assign(vValue.size(), true);
     nBest = nTotalLower;
+
+
 
     for (int nRep = 0; nRep < iterations && nBest != nTargetValue; nRep++)
     {
@@ -1300,6 +1298,7 @@ int64_t CWallet::GetNewMint() const
     }
     return nTotal;
 }
+
 
 bool fGlobalStakeForCharity = false;
 int nPrevS4CHeight = 0;
@@ -1447,15 +1446,12 @@ bool CWallet::SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, 
                 nValueRet += vValue[i].first;
             }
 
-        if (fDebug && GetBoolArg("-printpriority"))
-        {
-            //// debug print
-            printf("SelectCoins() best subset: ");
-            for (unsigned int i = 0; i < vValue.size(); i++)
-                if (vfBest[i])
-                    printf("%s ", FormatMoney(vValue[i].first).c_str());
-            printf("total %s\n", FormatMoney(nBest).c_str());
-        }
+        //// debug print
+        LogPrint("selectcoins", "SelectCoins() best subset: ");
+        for (unsigned int i = 0; i < vValue.size(); i++)
+            if (vfBest[i])
+                LogPrint("selectcoins", "%s ", FormatMoney(vValue[i].first));
+            LogPrint("selectcoins", "total %s\n", FormatMoney(nBest));
     }
 
     return true;
@@ -1674,40 +1670,6 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
     }
     return true;
 }
-
-
-
-
-bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, bool fAllowS4C, const CCoinControl* coinControl)
-{
-    vector< pair<CScript, int64_t> > vecSend;
-    vecSend.push_back(make_pair(scriptPubKey, nValue));
-    
-    if (sNarr.length() > 0)
-    {
-        std::vector<uint8_t> vNarr(sNarr.c_str(), sNarr.c_str() + sNarr.length());
-        std::vector<uint8_t> vNDesc;
-        
-        vNDesc.resize(2);
-        vNDesc[0] = 'n';
-        vNDesc[1] = 'p';
-        
-        CScript scriptN = CScript() << OP_RETURN << vNDesc << OP_RETURN << vNarr;
-        
-        vecSend.push_back(make_pair(scriptN, 0));
-    }
-    
-    // -- CreateTransaction won't place change between value and narr output.
-    //    narration output will be for preceding output
-    
-    int nChangePos;
-    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, fAllowS4C, nChangePos, coinControl);
-    
-    // -- narration will be added to mapValue later in FindStealthTransactions From CommitTransaction
-    return rv;
-}
-
-
 
 bool CWallet::NewStealthAddress(std::string& sError, std::string& sLabel, CStealthAddress& sxAddr)
 {
@@ -2495,6 +2457,35 @@ bool CWallet::GetStakeWeight(const CKeyStore& keystore, uint64_t& nMinWeight, ui
     }
 
     return true;
+}
+
+bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, bool fAllowS4C, const CCoinControl* coinControl)
+{
+    vector< pair<CScript, int64_t> > vecSend;
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+    
+    if (sNarr.length() > 0)
+    {
+        std::vector<uint8_t> vNarr(sNarr.c_str(), sNarr.c_str() + sNarr.length());
+        std::vector<uint8_t> vNDesc;
+        
+        vNDesc.resize(2);
+        vNDesc[0] = 'n';
+        vNDesc[1] = 'p';
+        
+        CScript scriptN = CScript() << OP_RETURN << vNDesc << OP_RETURN << vNarr;
+        
+        vecSend.push_back(make_pair(scriptN, 0));
+    }
+    
+    // -- CreateTransaction won't place change between value and narr output.
+    //    narration output will be for preceding output
+    
+    int nChangePos;
+    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, fAllowS4C, nChangePos, coinControl);
+    
+    // -- narration will be added to mapValue later in FindStealthTransactions From CommitTransaction
+    return rv;
 }
 
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, int64_t nFees, CTransaction& txNew, CKey& key)

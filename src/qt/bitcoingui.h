@@ -7,7 +7,7 @@
 #include <QMap>
 
 #include "util.h"
-#include <stdint.h>
+
 
 class TransactionTableModel;
 class WalletView;
@@ -17,13 +17,11 @@ class WalletStack;
 class TransactionView;
 class OverviewPage;
 class AddressBookPage;
-class MessagePage;
 class SendCoinsDialog;
 class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
 class StakeForCharityDialog;
-class CBitcoinAddress;
 class CWallet;
 class CWalletManager;
 
@@ -34,7 +32,6 @@ class QProgressBar;
 class QStackedWidget;
 class QListWidget;
 class QPushButton;
-class QUrl;
 QT_END_NAMESPACE
 
 class ActiveLabel : public QLabel
@@ -92,12 +89,8 @@ protected:
 
 private:
     ClientModel *clientModel;
-    WalletModel *walletModel;
-
     CWalletManager *walletManager;
     StakeForCharityDialog *stakeForCharityDialog;
-    OverviewPage *overviewPage;
-    MessagePage *messagePage;
 
     QMap<QString, WalletModel*> mapWalletModels;
     QListWidget *walletList;
@@ -107,7 +100,6 @@ private:
     QPushButton *unloadWalletButton;
     QPushButton *newWalletButton;
 
-    QStackedWidget *centralWidget;
 
     QLabel *labelEncryptionIcon;
     QLabel *labelStakingIcon;
@@ -199,6 +191,7 @@ public slots:
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
+
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set number of blocks shown in the UI */
@@ -225,7 +218,7 @@ public slots:
                             @see CClientUIInterface::MessageBoxFlags
        @param[in] detail    optional detail text
     */
-    void error(const QString &title, const QString &message, unsigned int style, const QString &detail=QString());
+
     void message(const QString &title, const QString &message, unsigned int style, const QString &detail=QString());
     /** Asks the user whether to pay the transaction fee or to cancel the transaction.
        It is currently not possible to pass a return value to another thread through
@@ -246,7 +239,6 @@ public slots:
     void newWallet();
 
 private slots:
-    
     /** Show configuration dialog */
     void optionsClicked();
     /** Show about dialog */
@@ -264,10 +256,8 @@ private slots:
     /** Handle tray icon clicked */
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
-
     /** Encrypt the wallet */
     void encryptWallet(bool status);
-
     /** Check the wallet */
     void checkWallet();
     /** Repair the wallet */
@@ -285,6 +275,9 @@ private slots:
 
     void lockWallet();
 
+    /** Give user information about staking */
+    void updateStakingIcon();
+
     /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
     void showNormalIfMinimized(bool fToggleHidden = false);
     /** simply calls showNormalIfMinimized(true) for use in SLOT() macro */
@@ -295,7 +288,6 @@ private slots:
     void removeWallet(const QString& name);
 
     void updateWeight();
-    void updateStakingIcon();
 };
 
-#endif
+#endif // BITCOINGUI_H

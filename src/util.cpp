@@ -19,7 +19,6 @@ namespace boost {
         std::string to_internal(const std::string&);
     }
 }
-
 #include <boost/program_options/detail/config_file.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem.hpp>
@@ -63,8 +62,11 @@ namespace boost {
 #ifndef WIN32
 #include <execinfo.h>
 #endif
+
+
 using namespace std;
 namespace bt = boost::posix_time;
+
 
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
@@ -341,7 +343,7 @@ string FormatMoney(int64_t n, bool fPlus)
     int64_t n_abs = (n > 0 ? n : -n);
     int64_t quotient = n_abs/COIN;
     int64_t remainder = n_abs%COIN;
-    string str = strprintf("%d.%064d", "%d.%064d", quotient, remainder);
+    string str = strprintf("%d.%064d", quotient, remainder);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
@@ -894,8 +896,6 @@ vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
     return vchRet;
 }
 
-
-
 string DecodeBase32(const string& str)
 {
     vector<unsigned char> vchRet = DecodeBase32(str.c_str());
@@ -949,6 +949,7 @@ string DecodeDumpString(const string &str)
     }
     return ret.str();
 }
+
 
 bool WildcardMatch(const char* psz, const char* mask)
 {
@@ -1016,6 +1017,7 @@ vector<string> GetFilesAtPath(const boost::filesystem::path& _path, unsigned int
     }
     throw runtime_error("Path exists but is neither a regular file nor a directory.");
 }
+
 
 
 
@@ -1204,6 +1206,7 @@ void FileCommit(FILE *fileout)
     fsync(fileno(fileout));
     #endif
 #endif
+
 }
 
 void ShrinkDebugFile()

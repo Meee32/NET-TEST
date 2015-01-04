@@ -29,6 +29,7 @@
 #include "macdockiconhandler.h"
 #endif
 
+#include <QMainWindow>
 #include <QMenuBar>
 #include <QMenu>
 #include <QIcon>
@@ -415,6 +416,7 @@ void BitcoinGUI::createActions()
     optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
     optionsAction->setStatusTip(tr("Modify configuration options for Netcoin"));
     optionsAction->setMenuRole(QAction::PreferencesRole);
+
     toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
     toggleHideAction->setStatusTip(tr("Show or hide the main Window"));
 
@@ -452,7 +454,7 @@ void BitcoinGUI::createActions()
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
 
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
-    signMessageAction->setStatusTip(tr("Sign messages with your HoboNickels addresses to prove you own them"));
+    signMessageAction->setStatusTip(tr("Sign messages with your Netcoin addresses to prove you own them"));
 
     verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
     verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Netcoin addresses"));
@@ -573,13 +575,10 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(charityAction);
     toolbar->addAction(shoppingAction);
     toolbar->addAction(messageAction);
-    toolbar->setContextMenuPolicy(Qt::NoContextMenu);
-
     QToolBar *toolbar2 = addToolBar(tr("Actions toolbar"));
     toolbar2->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolbar2->addAction(exportAction);
     toolbar2->addAction(openRPCConsoleAction);
-    toolbar2->setContextMenuPolicy(Qt::NoContextMenu);
 }
 
 void BitcoinGUI::setClientModel(ClientModel *clientModel)
@@ -599,11 +598,11 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 #endif
             if(trayIcon)
             {
-                trayIcon->setToolTip(trayIcon->toolTip() + QString(" ") + tr("[testnet]"));
+                trayIcon->setToolTip(tr("ShadowCoin client") + QString(" ") + tr("[testnet]"));
                 trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
-
+                toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
             }
-            toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
+
             aboutAction->setIcon(QIcon(":/icons/toolbar_testnet"));
         }
 
@@ -659,7 +658,7 @@ void BitcoinGUI::createTrayIcon()
 {
     trayIcon = new QSystemTrayIcon(this);
 #ifndef Q_OS_MAC
-    trayIcon->setToolTip(tr("HoboNickels client"));
+    trayIcon->setToolTip(tr("Netcoin client"));
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     trayIcon->show();
 #endif
@@ -986,10 +985,9 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
     progressBar->setToolTip(tooltip);
 }
 
-void BitcoinGUI::error(const QString &title, const QString &message, unsigned int style, const QString &detail)
+void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, const QString &detail)
 {
-    // Report errors from network/worker thread
-        QString strTitle = tr("Netcoin") + " - ";
+    QString strTitle = tr("HoboNickels") + " - ";
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
@@ -1205,7 +1203,7 @@ void BitcoinGUI::dropEvent(QDropEvent *event)
         if (nValidUrisFound)
             walletStack->gotoSendCoinsPage();
         else
-             message(tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid HoboNickels address or malformed URI parameters."),
+             message(tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Netcoin address or malformed URI parameters."),
                      CClientUIInterface::ICON_WARNING);
 
     }
@@ -1230,7 +1228,7 @@ void BitcoinGUI::handleURI(QString strURI)
 {
   // URI has to be valid
   if (!walletStack->handleURI(strURI))
-      message(tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid HoboNickels address or malformed URI parameters."),
+      message(tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Netcoin address or malformed URI parameters."),
                    CClientUIInterface::ICON_WARNING);
 }
 
@@ -1256,56 +1254,6 @@ void BitcoinGUI::mainToolbarOrientation(Qt::Orientation orientation)
 void BitcoinGUI::secondaryToolbarOrientation(Qt::Orientation orientation)
 {
     secondaryToolbar->setStyleSheet(orientation == Qt::Horizontal ? HORIZONTAL_TOOLBAR_STYLESHEET : VERTICAL_TOOBAR_STYLESHEET);
-}
-
-void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, const QString &detail)
-{
-    QString strTitle = tr("HoboNickels") + " - ";
-    // Default to information icon
-    int nMBoxIcon = QMessageBox::Information;
-    int nNotifyIcon = Notificator::Information;
-
-
-    // Check for usage of predefined title
-    switch (style) {
-    case CClientUIInterface::MSG_ERROR:
-        strTitle += tr("Error");
-        break;
-    case CClientUIInterface::MSG_WARNING:
-        strTitle += tr("Warning");
-        break;
-    case CClientUIInterface::MSG_INFORMATION:
-        strTitle += tr("Information");
-        break;
-    default:
-        strTitle += title; // Use supplied title
-    }
-
-    // Check for error/warning icon
-    if (style & CClientUIInterface::ICON_ERROR) {
-        nMBoxIcon = QMessageBox::Critical;
-        nNotifyIcon = Notificator::Critical;
-    }
-    else if (style & CClientUIInterface::ICON_WARNING) {
-        nMBoxIcon = QMessageBox::Warning;
-        nNotifyIcon = Notificator::Warning;
-    }
-
-    // Display message
-    if (style & CClientUIInterface::MODAL) {
-        // Check for buttons, use OK as default, if none was supplied
-        QMessageBox::StandardButton buttons;
-        if (!(buttons = (QMessageBox::StandardButton)(style & CClientUIInterface::BTN_MASK)))
-            buttons = QMessageBox::Ok;
-
-        QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message, buttons);
-
-        if(!detail.isEmpty()) { mBox.setDetailedText(detail); }
-
-        mBox.exec();
-    }
-    else
-        notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
 }
 
 void BitcoinGUI::setEncryptionStatus(int status)

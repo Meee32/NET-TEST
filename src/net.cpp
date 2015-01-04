@@ -904,7 +904,7 @@ void ThreadSocketHandler2(void* parg)
         if (vNodes.size() != nPrevNodeCount)
         {
             nPrevNodeCount = vNodes.size();
-            uiInterface.NotifyNumConnectionsChanged(vNodes.size());
+            uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
         }
 
 
@@ -1064,6 +1064,7 @@ void ThreadSocketHandler2(void* parg)
                             pnode->nLastRecv = GetTime();
                             pnode->nRecvBytes += nBytes;
                             pnode->RecordBytesRecv(nBytes);
+
                         }
                         else if (nBytes == 0)
                         {
@@ -1132,7 +1133,6 @@ void ThreadSocketHandler2(void* parg)
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->Release();
         }
-
         MilliSleep(10);
     }
 }
@@ -1323,6 +1323,7 @@ void ThreadDNSAddressSeed(void* parg)
 void ThreadDNSAddressSeed2(void* parg)
 {
     LogPrintf("ThreadDNSAddressSeed started\n");
+
     // goal: only query DNS seeds if address need is acute
     if ((addrman.size() > 0) && (!GetBoolArg("-forcednsseed", false))) {
         MilliSleep(25* 1000);
@@ -1602,7 +1603,7 @@ void ThreadOpenConnections2(void* parg)
 void ThreadOpenAddedConnections(void* parg)
 {
     // Make this thread recognisable as the connection opening thread
-    RenameThread("netcoin-opencon");
+    RenameThread("bitcoin-opencon");
 
     try
     {
@@ -1622,10 +1623,10 @@ void ThreadOpenAddedConnections(void* parg)
 
 void ThreadOpenAddedConnections2(void* parg)
 {
-    LogPrintf("net", "ThreadOpenAddedConnections started\n");
-
-    if (mapArgs.count("-addnode") == 0)
-        return;
+    {
+        LOCK(cs_vAddedNodes);
+        vAddedNodes = mapMultiArgs["-addnode"];
+    }
 
     if (HaveNameProxy()) {
         while(!fShutdown) {

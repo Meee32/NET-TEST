@@ -446,7 +446,11 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
     {
         return QString();
     }
-
+    // Add entry
+    {
+        LOCK(wallet->cs_wallet);
+        wallet->SetAddressBookName(CBitcoinAddress(strAddress).Get(), strLabel);
+    }
     return QString::fromStdString(strAddress);
 }
 

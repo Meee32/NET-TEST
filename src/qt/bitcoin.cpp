@@ -8,7 +8,6 @@
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "optionsmodel.h"
-#include "messagemodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
 #include "winshutdownmonitor.h"
@@ -54,6 +53,7 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
                                    Q_ARG(QString, QString::fromStdString(caption)),
                                    Q_ARG(QString, QString::fromStdString(message)),
                                    Q_ARG(unsigned int, style));
+
     }
     else
     {
@@ -130,6 +130,7 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, cons
     LogPrint("qt", "Bitcoin-Qt: %s\n", qPrintable(msg));
 }
 #endif
+
 #ifndef BITCOIN_QT_TEST
 int main(int argc, char *argv[])
 {
@@ -296,7 +297,7 @@ int main(int argc, char *argv[])
                 ipcInit(argc, argv);
 
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
-                 WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("HoboNickels shutting down. Please wait..."), (HWND)window.getMainWinId());
+                 WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("Netcoin shutting down. Please wait..."), (HWND)window.getMainWinId());
 #endif
 
                 app.exec();
