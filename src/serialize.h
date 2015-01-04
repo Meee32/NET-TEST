@@ -25,9 +25,8 @@
 #include "version.h"
 
 class CAutoFile;
-class CDataStream;
 class CScript;
-
+class CDataStream;
 static const unsigned int MAX_SIZE = 0x02000000;
 
 // Used to bypass the rule against non-const reference to temporary
@@ -957,6 +956,7 @@ public:
         {
             if (nReadPosNext > vch.size())
                 setstate(std::ios::failbit, "CDataStream::ignore() : end of data");
+
             nReadPos = 0;
             vch.clear();
             return (*this);

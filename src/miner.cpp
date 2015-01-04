@@ -68,6 +68,13 @@ public:
         ptx = ptxIn;
         dPriority = dFeePerKb = 0;
     }
+    void print() const
+    {
+        printf("COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
+               ptx->GetHash().ToString().substr(0,10).c_str(), dPriority, dFeePerKb);
+        BOOST_FOREACH(uint256 hash, setDependsOn)
+            printf("   setDependsOn %s\n", hash.ToString().substr(0,10).c_str());
+    }
 };
 
 
@@ -327,7 +334,6 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
             LogPrint("priority", "priority %.1f feeperkb %.1f txid %s\n",
                 dPriority, dFeePerKb, tx.GetHash().ToString());
 
-
             // Add transactions that depend on this one to the priority queue
             uint256 hash = tx.GetHash();
             if (mapDependers.count(hash))
@@ -469,10 +475,18 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
             return error("CheckWork() : ProcessBlock, block not accepted");
+
+        std::string strCmd = GetArg("-blockfoundnotify", "");
+        if (!strCmd.empty())
+        {
+            boost::replace_all(strCmd, "%s", hashBlock.GetHex());
+            boost::thread t(runCommand, strCmd); // thread runs free
+        }
     }
 
     return true;
 }
+
 
 bool CheckStake(CBlock* pblock, CWallet& wallet)
 {
@@ -487,7 +501,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         return error("CheckStake() : proof-of-stake checking failed");
 
     //// debug print
-    LogPrintf("CheckStake() : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
+    LogPrintf("CheckStake() : new proof-of-stake block found \n hash: %s \nproofhash: %s \ntarget: %s\n", hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
     pblock->print();
     LogPrintf("out %s\n", FormatMoney(pblock->vtx[1].GetValueOut()));
 
@@ -520,13 +534,14 @@ void StakeMiner(CWallet *pwallet)
 
     bool fTryToSync = true;
 
-    while (!fStopStaking)
+    while (true)
     {
         if (fShutdown)
             return;
 
         while (pwallet->IsLocked())
         {
+            nLastCoinStakeSearchInterval = 0;
             MilliSleep(1000);
             if (fShutdown)
                 return;
@@ -534,6 +549,7 @@ void StakeMiner(CWallet *pwallet)
 
         while (vNodes.empty() || IsInitialBlockDownload())
         {
+            nLastCoinStakeSearchInterval = 0;
             fTryToSync = true;
             MilliSleep(1000);
             if (fShutdown)
@@ -558,7 +574,7 @@ void StakeMiner(CWallet *pwallet)
         auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, true, &nFees));
         if (!pblock.get())
             return;
-
+        
         // Trying to sign a block
         if (pblock->SignBlock(*pwallet, nFees))
         {
@@ -571,3 +587,6 @@ void StakeMiner(CWallet *pwallet)
             MilliSleep(nMinerSleep);
     }
 }
+
+
+

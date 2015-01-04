@@ -344,31 +344,31 @@ void CoinControlDialog::showMenu(const QPoint &point)
 // context menu action: copy amount
 void CoinControlDialog::copyAmount()
 {
-    GUIUtil::setClipboard()->setText(contextMenuItem->text(COLUMN_AMOUNT));
+    QApplication::clipboard()->setText(contextMenuItem->text(COLUMN_AMOUNT));
 }
 
 // context menu action: copy label
 void CoinControlDialog::copyLabel()
 {
     if (ui->radioTreeMode->isChecked() && contextMenuItem->text(COLUMN_LABEL).length() == 0 && contextMenuItem->parent())
-        GUIUtil::setClipboard(contextMenuItem->parent()->text(COLUMN_LABEL));
+        QApplication::clipboard()->setText(contextMenuItem->parent()->text(COLUMN_LABEL));
     else
-        GUIUtil::setClipboard(contextMenuItem->text(COLUMN_LABEL));
+        QApplication::clipboard()->setText(contextMenuItem->text(COLUMN_LABEL));
 }
 
 // context menu action: copy address
 void CoinControlDialog::copyAddress()
 {
     if (ui->radioTreeMode->isChecked() && contextMenuItem->text(COLUMN_ADDRESS).length() == 0 && contextMenuItem->parent())
-        GUIUtil::setClipboard(contextMenuItem->parent()->text(COLUMN_ADDRESS));
+        QApplication::clipboard()->setText(contextMenuItem->parent()->text(COLUMN_ADDRESS));
     else
-        GUIUtil::setClipboard(contextMenuItem->text(COLUMN_ADDRESS));
+        QApplication::clipboard()->setText(contextMenuItem->text(COLUMN_ADDRESS));
 }
 
 // context menu action: copy transaction id
 void CoinControlDialog::copyTransactionHash()
 {
-    GUIUtil::setClipboard(contextMenuItem->text(COLUMN_TXHASH));
+    QApplication::clipboard()->setText(contextMenuItem->text(COLUMN_TXHASH));
 }
 
 // context menu action: lock coin
@@ -397,49 +397,49 @@ void CoinControlDialog::copyTransactionHash()
 // copy label "Quantity" to clipboard
 void CoinControlDialog::clipboardQuantity()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlQuantity->text());
+    QApplication::clipboard()->setText(ui->labelCoinControlQuantity->text());
 }
 
 // copy label "Amount" to clipboard
 void CoinControlDialog::clipboardAmount()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlAmount->text().left(ui->labelCoinControlAmount->text().indexOf(" ")));
+    QApplication::clipboard()->setText(ui->labelCoinControlAmount->text().left(ui->labelCoinControlAmount->text().indexOf(" ")));
 }
 
 // copy label "Fee" to clipboard
 void CoinControlDialog::clipboardFee()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlFee->text().left(ui->labelCoinControlFee->text().indexOf(" ")));
+    QApplication::clipboard()->setText(ui->labelCoinControlFee->text().left(ui->labelCoinControlFee->text().indexOf(" ")));
 }
 
 // copy label "After fee" to clipboard
 void CoinControlDialog::clipboardAfterFee()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlAfterFee->text().left(ui->labelCoinControlAfterFee->text().indexOf(" ")));
+    QApplication::clipboard()->setText(ui->labelCoinControlAfterFee->text().left(ui->labelCoinControlAfterFee->text().indexOf(" ")));
 }
 
 // copy label "Bytes" to clipboard
 void CoinControlDialog::clipboardBytes()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlBytes->text());
+    QApplication::clipboard()->setText(ui->labelCoinControlBytes->text());
 }
 
 // copy label "Priority" to clipboard
 void CoinControlDialog::clipboardPriority()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlPriority->text());
+    QApplication::clipboard()->setText(ui->labelCoinControlPriority->text());
 }
 
 // copy label "Low output" to clipboard
 void CoinControlDialog::clipboardLowOutput()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlLowOutput->text());
+    QApplication::clipboard()->setText(ui->labelCoinControlLowOutput->text());
 }
 
 // copy label "Change" to clipboard
 void CoinControlDialog::clipboardChange()
 {
-    GUIUtil::setClipboard(ui->labelCoinControlChange->text().left(ui->labelCoinControlChange->text().indexOf(" ")));
+    QApplication::clipboard()->setText(ui->labelCoinControlChange->text().left(ui->labelCoinControlChange->text().indexOf(" ")));
 }
 
 // treeview: sort
@@ -627,7 +627,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
         qint64 nFee = nTransactionFee * (1 + (qint64)nBytes / 1000);
         
         // Min Fee
-        qint64 nMinFee = txDummy.GetMinFee(1, false, GMF_SEND, nBytes);
+        qint64 nMinFee = txDummy.GetMinFee(1, GMF_SEND, nBytes);
         
         nPayFee = max(nFee, nMinFee);
         
@@ -752,7 +752,7 @@ void CoinControlDialog::updateView()
             
             for (int i = 0; i < ui->treeWidget->columnCount(); i++)
                 itemWalletAddress->setBackground(i, QColor(248, 247, 246));
-            
+
             // label
             itemWalletAddress->setText(COLUMN_LABEL, sWalletLabel);
 
@@ -860,7 +860,7 @@ void CoinControlDialog::updateView()
 
             // Potential Stake Sum for Tree View
             nPotentialStakeSum += nPotentialStake;
-     
+
             // transaction hash
             uint256 txhash = out.tx->GetHash();
             itemOutput->setText(COLUMN_TXHASH, txhash.GetHex().c_str());

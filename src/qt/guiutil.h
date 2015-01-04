@@ -8,7 +8,7 @@
 #include <QMessageBox>
 #include <QLabel>
 
-
+class SendCoinsRecipient;
 
 QT_BEGIN_NAMESPACE
 class QFont;
@@ -19,7 +19,6 @@ class QUrl;
 class QAbstractItemView;
 class QLabel;
 QT_END_NAMESPACE
-class SendCoinsRecipient;
 
 /** Utility functions used by the Bitcoin Qt UI.
  */
@@ -54,6 +53,7 @@ namespace GUIUtil
     void copyEntryData(QAbstractItemView *view, int column, int role=Qt::EditRole);
 
     void setClipboard(const QString& str);
+
     /** Get save filename, mimics QFileDialog::getSaveFileName, except that it appends a default suffix
         when no suffix is provided by the user.
 
@@ -99,7 +99,7 @@ namespace GUIUtil
         int size_threshold;
     };
 
-     /**
+    /**
      * Makes a QTableView last column feel as if it was being resized from its left border.
      * Also makes sure the column widths are never larger than the table's viewport.
      * In Qt, all columns are resizable from the right, but it's not intuitive resizing the last column from the right.
@@ -144,6 +144,7 @@ namespace GUIUtil
     void saveWindowGeometry(const QString& strSetting, QWidget *parent);
     /** Restore window size and position */
     void restoreWindowGeometry(const QString& strSetting, const QSize &defaultSizeIn, QWidget *parent);
+
     /** Help message for Bitcoin-Qt, shown with --help. */
     class HelpMessageBox : public QMessageBox
     {
@@ -188,6 +189,8 @@ namespace GUIUtil
     /* Format a CNodeCombinedStats.dPingTime into a user-readable string or display N/A, if 0*/
     QString formatPingTime(double dPingTime);
 
+
 } // namespace GUIUtil
+
 
 #endif // GUIUTIL_H

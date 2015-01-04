@@ -14,16 +14,16 @@
 #include <boost/thread/recursive_mutex.hpp>
 
 
+
 ////////////////////////////////////////////////
-//                                            //
+// //                                           
 // THE SIMPLE DEFINITON, EXCLUDING DEBUG CODE //
-//                                            //
+// //
 ////////////////////////////////////////////////
 
 /*
- 
- 
- 
+
+
 CCriticalSection mutex;
     boost::recursive_mutex mutex;
 
@@ -42,11 +42,10 @@ ENTER_CRITICAL_SECTION(mutex); // no RAII
 
 LEAVE_CRITICAL_SECTION(mutex); // no RAII
     mutex.unlock();
- 
- 
- 
- */
 
+
+
+*/
 
 
 ///////////////////////////////
@@ -63,19 +62,20 @@ class LOCKABLE AnnotatedMixin : public PARENT
 public:
     void lock() EXCLUSIVE_LOCK_FUNCTION()
     {
-      PARENT::lock();
+        PARENT::lock();
     }
-
     void unlock() UNLOCK_FUNCTION()
     {
-      PARENT::unlock();
+        PARENT::unlock();
     }
-
     bool try_lock() EXCLUSIVE_TRYLOCK_FUNCTION(true)
     {
-      return PARENT::try_lock();
+        return PARENT::try_lock();
     }
 };
+
+
+
 
 /** Wrapped boost mutex: supports recursive locking, but no waiting  */
 // TODO: We should move away from using the recursive lock by default.
@@ -129,8 +129,8 @@ private:
             LeaveCritical();
         return lock.owns_lock();
     }
-
 public:
+
     CMutexLock(Mutex& mutexIn, const char* pszName, const char* pszFile, int nLine, bool fTry = false) : lock(mutexIn, boost::defer_lock)
     {
         if (fTry)
