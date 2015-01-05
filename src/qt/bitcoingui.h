@@ -286,8 +286,6 @@ private slots:
     /** Adds or removes wallets to the stack */
     void addWallet(const QString& name);
     void removeWallet(const QString& name);
-
-    void updateWeight();
 };
 
 #endif // BITCOINGUI_H

@@ -237,14 +237,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     frameBlocksLayout->addWidget(labelBlocksIcon);
     frameBlocksLayout->addStretch();
 
-    if (GetBoolArg("-staking", true))
-    {
-        QTimer *timerStakingIcon = new QTimer(labelStakingIcon);
-        connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(updateStakingIcon()));
-        timerStakingIcon->start(30 * 1000);
-        updateStakingIcon();
-    }
-
     connect(labelEncryptionIcon, SIGNAL(clicked()), unlockWalletAction, SLOT(trigger()));
 
     // Progress bar and label for blocks download
@@ -1393,23 +1385,6 @@ void BitcoinGUI::toggleHidden()
     showNormalIfMinimized(true);
 }
 
-void BitcoinGUI::updateWeight()
-{
-    if (!pwalletMain)
-        return;
-
-    TRY_LOCK(cs_main, lockMain);
-    if (!lockMain)
-        return;
-
-    TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-    if (!lockWallet)
-        return;
-
-    uint64_t nMinWeight = 0, nMaxWeight = 0;
-    pwalletMain->GetStakeWeight(*pwalletMain, nMinWeight, nMaxWeight, nWeight);
-}
-
 void BitcoinGUI::updateStakingIcon()
 {
     if (!walletStack)
@@ -1419,7 +1394,7 @@ void BitcoinGUI::updateStakingIcon()
 
     if (!clientModel->getNumConnections())
         labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
-    else if (clientModel->getNumConnections() < 3 )
+    else if (clientModel->getNumConnections() < 1 )
         labelStakingIcon->setToolTip(tr("Not staking because wallet is still acquiring nodes"));
     else if (clientModel->inInitialBlockDownload() ||
              clientModel->getNumBlocks() < clientModel->getNumBlocksOfPeers())

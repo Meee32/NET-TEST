@@ -1,6 +1,7 @@
 #include "overviewpage.h"
 #include "ui_overviewpage.h"
 
+#include "walletstack.h"
 #include "walletmodel.h"
 #include "clientmodel.h"
 #include "main.h"
@@ -169,11 +170,6 @@ void OverviewPage::handleTransactionClicked(const QModelIndex &index)
         emit transactionClicked(filter->mapToSource(index));
 }
 
-OverviewPage::~OverviewPage()
-{
-    delete ui;
-}
-
 void OverviewPage::setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance, qint64 immatureBalance)
 {
     int unit = walletModel->getOptionsModel()->getDisplayUnit();
@@ -235,8 +231,8 @@ void OverviewPage::updateMyWeight()
 
     if (nLastCoinStakeSearchInterval && nWeight)
     {
-        uint64_t nNetworkWeight2 = GetPoSKernelPS(0);
-        unsigned nEstimateTime = nTargetSpacing * 2 * nNetworkWeight2 / nWeight;
+        uint64_t nNetworkWeight = GetPoSKernelPS(pindexBest);
+        unsigned nEstimateTime = nTargetSpacing * 2 * nNetworkWeight / nWeight;
 
         QString text;
         if (nEstimateTime < 60)
@@ -256,7 +252,7 @@ void OverviewPage::updateMyWeight()
             text = tr("%n day(s)", "", nEstimateTime/(60*60*24));
         }
 
-        ui->labelMyWeight->setText(tr("Staking.<br>Your weight is %1<br>Network weight is %2<br>Expected time to earn reward is %3").arg(nWeight).arg(nNetworkWeight2).arg(text));
+        ui->labelMyWeight->setText(tr("Staking.<br>Your weight is %1<br>Network weight is %2<br>Expected time to earn reward is %3").arg(nWeight).arg(nNetworkWeight).arg(text));
     }
     else
     {
@@ -365,7 +361,7 @@ void OverviewPage::updateStatistics()
     double nSubsidy = GetProofOfWorkReward(nHeight, 0, pindexBest->GetBlockHash())/COIN;
     uint64_t nMinWeight = 0, nMaxWeight = 0, nWeight = 0;
     pwalletMain->GetStakeWeight(*pwalletMain, nMinWeight, nMaxWeight, nWeight);
-    uint64_t nNetworkWeight2 = GetPoSKernelPS(0);
+    uint64_t nNetworkWeight2 = GetPoSKernelPS(pindexBest);
     int64_t volume = ((pindexBest->nMoneySupply)/100000000);
     int peers = this->modelStatistics->getNumConnections();
     pPawrate2 = (double)pPawrate;
@@ -461,4 +457,9 @@ void OverviewPage::setStatistics(ClientModel *modelStatistics)
     updateStatistics();
     this->modelStatistics = modelStatistics;
 
+}
+
+OverviewPage::~OverviewPage()
+{
+    delete ui;
 }

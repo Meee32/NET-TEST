@@ -481,6 +481,7 @@ void CWallet::WalletUpdateSpent(const CTransaction &tx, bool fBlock)
            {
               wtx.MarkUnspent(&txout - &tx.vout[0]);
               wtx.WriteToDisk();
+              NotifyTransactionChanged(this, hash, CT_UPDATED);
            }
        }
 
