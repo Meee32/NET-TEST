@@ -45,10 +45,15 @@
         <file alias="staking_on">res/icons/staking_on.png</file>
         <file alias="load_wallet">res/icons/Load.png</file>
         <file alias="unload_wallet">res/icons/unload_wallet.png</file>
+        <file alias="inspect">res/icons/inspect.png</file>
         <file>res/icons/repair.png</file>
+        <file alias="import">res/icons/import.png</file>
+        <file alias="export2">res/icons/export2.png</file>
+
+        <file alias="blexp">res/icons/blexp.png</file>
         <file alias="info">res/icons/info.png</file>
         <file alias="traffic">res/icons/traffic.png</file>
-
+        <file alias="p2p">res/icons/p2p.png</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="about">res/images/about.png</file>
