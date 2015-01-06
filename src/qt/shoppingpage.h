@@ -17,8 +17,6 @@
 #include <QSettings>
 #include <QSlider>
 
-#include <QDialog>
-
 double getBlockHardness(int);
 double getTxTotalValue(std::string);
 double convertCoins(int64_t);
@@ -51,7 +49,7 @@ QT_END_NAMESPACE
 
 /** Widget that shows a list of sending or receiving addresses.
   */
-class ShoppingPage : public QDialog
+class ShoppingPage : public QWidget
 {
     Q_OBJECT
 

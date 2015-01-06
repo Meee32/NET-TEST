@@ -135,7 +135,7 @@ public slots:
     /** Switch to Shopping page */
     void gotoShoppingPage();
     /** Switch to message page */
-    void gotoMessagePage();
+    void gotoMessagePage(bool fExportOnly=false, bool fExportConnect=true, bool fExportFirstTime=false);
     /** Switch to block browser page */
     void gotoBlockBrowser(QString transactionId = "");
 

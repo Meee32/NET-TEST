@@ -71,7 +71,7 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "ShadowCoin Signed Message:\n";
+const string strMessageMagic = "Netcoin Signed Message:\n";
 
 double dHashesPerSec;
 int64_t nHPSTimerStart;

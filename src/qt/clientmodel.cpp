@@ -64,7 +64,7 @@ double ClientModel::getDifficulty(bool fProofofStake)
 
 double ClientModel::getProofOfStakeReward()
 {
-    return GetProofOfStakeReward(0, GetLastBlockIndex(pindexBest, true)->nBits, GetLastBlockIndex(pindexBest, true)->nTime, true)/10000;
+    return GetPIRRewardCoinYear(0, 0)/10000;
 }
 
 int ClientModel::getLastPoSBlock()

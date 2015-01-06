@@ -90,7 +90,7 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent)
 
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 {
-    if(uri.scheme() != QString("hobonickels"))
+    if(uri.scheme() != QString("Netcoin"))
         return false;
 
     SendCoinsRecipient rv;

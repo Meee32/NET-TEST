@@ -136,7 +136,12 @@ void WalletStack::gotoMessagePage()
 {
     QMap<QString, WalletView*>::const_iterator i;
     for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
-        i.value()->gotoMessagePage();
+    {
+       if ((WalletView*)currentWidget() == i.value())
+         i.value()->gotoMessagePage(false, true, false);
+       else
+         i.value()->gotoMessagePage(false, false, false);
+    }
 }
 
 void WalletStack::gotoBlockBrowser(QString transactionId)

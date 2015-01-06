@@ -55,8 +55,8 @@
     <number>1</number>
    </property>
    <property name="text">
-    <string>Stake For Charity allows you to automatically send up to 50% of your stake to another HoboNickels address after it matures.
-Please enter percentage to give and HoboNickels address to give to. Min and Max amount and change address are optional.</string>
+    <string>Stake For Charity allows you to automatically send up to 50% of your stake to another Netcoin address after it matures.
+Please enter percentage to give and Netcoin address to give to. Min and Max amount and change address are optional.</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

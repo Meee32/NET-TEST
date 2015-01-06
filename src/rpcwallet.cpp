@@ -236,7 +236,7 @@ Value stakeforcharity(CWallet *pWallet, const Array &params, bool fHelp)
 
     if (fHelp || params.size() < 2 || params.size() > 5)
         throw runtime_error(
-            "stakeforcharity <HoboNickelsaddress> <percent> [Change Address] [min amount] [max amount]\n"
+            "stakeforcharity <Netcoinaddress> <percent> [Change Address] [min amount] [max amount]\n"
             "Gives a percentage of a found stake to a different address, after stake matures\n"
             "Percent is a whole number 1 to 50. Set to 0 to turn off.\n"
             "Change Address, Min and Max Amount are optional\n"
@@ -245,7 +245,7 @@ Value stakeforcharity(CWallet *pWallet, const Array &params, bool fHelp)
 
     CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid HoboNickels address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Netcoin address");
 
     if (params[1].get_int() < 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, expected valid percentage");
@@ -263,10 +263,10 @@ Value stakeforcharity(CWallet *pWallet, const Array &params, bool fHelp)
     if (params.size() > 2) {
         changeAddress = params[2].get_str();
         if (!changeAddress.IsValid())
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid HoboNickels change address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Netcoin change address");
         else {
             if(!IsMine(*pWallet, changeAddress.Get()))
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "HoboNickels change address not owned");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Netcoin change address not owned");
         }
     }
 
@@ -913,7 +913,7 @@ Value addmultisigaddress(CWallet* pWallet, const Array& params, bool fHelp)
     {
         string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
             "Add a nrequired-to-sign multisignature address to the wallet\"\n"
-            "each key is a ShadowCoin address or hex-encoded public key\n"
+            "each key is a Netcoin address or hex-encoded public key\n"
             "If [account] is specified, assign address to [account].";
         throw runtime_error(msg);
     }
@@ -2127,7 +2127,7 @@ Value getnewstealthaddress(CWallet* pWallet, const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "getnewstealthaddress [label]\n"
-            "Returns a new ShadowCoin stealth address for receiving payments anonymously.  ");
+            "Returns a new Netcoin stealth address for receiving payments anonymously.  ");
     
     if (pWallet->IsLocked())
         throw runtime_error("Failed: Wallet must be unlocked.");
@@ -2329,7 +2329,7 @@ Value sendtostealthaddress(CWallet* pWallet, const Array& params, bool fHelp)
     
     if (!sxAddr.SetEncoded(sEncoded))
     {
-        result.push_back(Pair("result", "Invalid ShadowCoin stealth address."));
+        result.push_back(Pair("result", "Invalid Netcoin stealth address."));
         return result;
     };
     

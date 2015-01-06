@@ -489,10 +489,10 @@ void CDBEnv::Flush(bool fShutdown)
             {
                 // Move log data to the dat file
                 CloseDb(strFile);
-                LogPrint("db", "%s checkpoint\n", strFile);
+                LogPrint("db","%s checkpoint\n", strFile);
                 dbenv.txn_checkpoint(0, 0, 0);
                 if (!IsChainFile(strFile) || fDetachDB) {
-                    LogPrint("db", "%s detach\n", strFile);
+                    LogPrint("db","%s detach\n", strFile);
                     if (!fMockDb)
                         dbenv.lsn_reset(strFile.c_str(), 0);
                 }

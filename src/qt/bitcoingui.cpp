@@ -15,6 +15,7 @@
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "walletstack.h"
+#include "walletview.h"
 #include "optionsmodel.h"
 #include "transactiondescdialog.h"
 #include "bitcoinunits.h"
@@ -590,7 +591,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 #endif
             if(trayIcon)
             {
-                trayIcon->setToolTip(tr("ShadowCoin client") + QString(" ") + tr("[testnet]"));
+                trayIcon->setToolTip(tr("Netcoin client") + QString(" ") + tr("[testnet]"));
                 trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
                 toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
             }
@@ -742,7 +743,7 @@ void BitcoinGUI::blocksIconClicked()
            .arg(clientModel->getLastBlockDate().toString())
            .arg(clientModel->getDifficulty())
            .arg(clientModel->getPoWMHashPS())
-           .arg(tr("5.0000000")) // Hard Coded as HBN is always 5, but should use GetProofOfWorkReward
+           .arg(tr("5.0000000")) // Hard Coded as NET is always 5, but should use GetProofOfWorkReward
            .arg(walletStack->getCurrentWallet())
            .arg(walletStack->getWalletVersion())
            .arg(walletManager->GetWalletCount())
@@ -842,7 +843,6 @@ void BitcoinGUI::gotoAddressBookPage(bool fExportOnly, bool fExportConnect, bool
 
 void BitcoinGUI::gotoShoppingPage()
 {
-    shoppingAction->setChecked(true);
     if (walletStack) walletStack->gotoShoppingPage();
 }
 
@@ -979,7 +979,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, const QString &detail)
 {
-    QString strTitle = tr("HoboNickels") + " - ";
+    QString strTitle = tr("Netcoin") + " - ";
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;

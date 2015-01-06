@@ -2046,7 +2046,7 @@ void StartNode(void* parg)
             LogPrintf("Error: NewThread(ThreadStakeMiner) failed\n");
 
     // ppcoin: mint proof-of-stake blocks in the background
-    // hbn: each wallet gets its own thread.
+    // net: each wallet gets its own thread.
     // Todo: Need to add a method to choose not to run stake off wallet.
 
     pWalletManager->RestartStakeMiner();

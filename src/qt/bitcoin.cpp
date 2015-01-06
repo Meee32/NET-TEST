@@ -5,8 +5,10 @@
 #include <QApplication>
 
 #include "bitcoingui.h"
+#include "walletview.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
+#include "messagemodel.h"
 #include "optionsmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
@@ -38,6 +40,7 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 #endif
 
 // Need a global reference for the notifications to find the GUI
+static WalletView *guiref2;
 static BitcoinGUI *guiref;
 static QSplashScreen *splashref;
 
@@ -264,9 +267,13 @@ int main(int argc, char *argv[])
                     splash.finish(&window);
 
                 ClientModel clientModel(&optionsModel);
+                WalletModel walletModel(pwalletMain, &optionsModel);
+                MessageModel messageModel(pwalletMain, &walletModel);
 
                 window.setClientModel(&clientModel);
                 window.setWalletManager(pWalletManager);
+                //window.setWalletModel(&walletModel);
+                //window.setMessageModel(&messageModel);
 
                 // Create wallet models for each wallet and add it.
                 BOOST_FOREACH(const wallet_map::value_type& item, pWalletManager->GetWalletMap())

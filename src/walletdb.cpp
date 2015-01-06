@@ -392,7 +392,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         else if (strType == "sxKeyMeta")
         {
             if (fDebug)
-                printf("WalletDB ReadKeyValue sxKeyMeta\n");
+                LogPrintf("WalletDB ReadKeyValue sxKeyMeta\n");
             
             CKeyID keyId;
             ssKey >> keyId;
@@ -443,7 +443,6 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             ssValue >> pwallet->nOrderPosNext;
         }
-
         else if (strType == "s4c")
         {
             string strS4CAccount;
@@ -567,7 +566,6 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
     if ((wss.nKeys + wss.nCKeys) != wss.nKeyMeta)
         pwallet->nTimeFirstKey = 1; // 0 would be considered 'no value'
 
-
     BOOST_FOREACH(uint256 hash, wss.vWalletUpgrade)
         WriteTx(hash, pwallet->mapWallet[hash]);
 
@@ -583,7 +581,6 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 
     return result;
 }
-
 void CWalletDB::UnloadWallet(CWallet* pwallet)
 {
     if (!pwallet || !pwallet->fFileBacked)
@@ -691,7 +688,7 @@ DBErrors CWalletDB::ZapWalletTx(CWallet* pwallet)
 void ThreadFlushWalletDB(void* parg)
 {
     // Make this thread recognisable as the wallet flushing thread
-    RenameThread("netcoin-wallet");
+    RenameThread("bitcoin-wallet");
 
     const string& strFile = ((const string*)parg)[0];
     static bool fOneThread;
@@ -828,7 +825,7 @@ bool DumpWallet(CWallet* pwallet, const string& strDest)
          return false;
 
       // produce output
-      file << strprintf("# Wallet dump created by HoboNickels %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
+      file << strprintf("# Wallet dump created by Netcoin %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
       file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
       file << strprintf("# * Best block at time of backup was %i (%s),\n", nBestHeight, hashBestChain.ToString());
       file << strprintf("#   mined on %s\n", EncodeDumpTime(pindexBest->nTime));

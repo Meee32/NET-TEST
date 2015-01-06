@@ -5,6 +5,7 @@
 #include "mrichtextedit.h"
 #include "messagemodel.h"
 #include "bitcoingui.h"
+#include "walletview.h"
 #include "csvmodelwriter.h"
 #include "guiutil.h"
 

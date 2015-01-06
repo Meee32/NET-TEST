@@ -128,7 +128,7 @@ void WalletView::createActions()
     tabGroup->addAction(overviewAction);
 
     sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send coins"), this);
-    sendCoinsAction->setStatusTip(tr("Send coins to a HoboNickels address"));
+    sendCoinsAction->setStatusTip(tr("Send coins to a Netcoin address"));
     sendCoinsAction->setToolTip(sendCoinsAction->statusTip());
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
@@ -218,10 +218,10 @@ void WalletView::createActions()
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
 
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
-    signMessageAction->setStatusTip(tr("Sign messages with your HoboNickels addresses to prove you own them"));
+    signMessageAction->setStatusTip(tr("Sign messages with your Netcoin addresses to prove you own them"));
 
     verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
-    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified HoboNickels addresses"));
+    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Netcoin addresses"));
 
     exportAction = new QAction(QIcon(":/icons/export"), tr("&Export..."), this);
     exportAction->setStatusTip(tr("Export the data in the current tab to a file"));
@@ -426,13 +426,30 @@ void WalletView::gotoShoppingPage()
     setCurrentWidget(shoppingPage);
 }
 
-void WalletView::gotoMessagePage()
-{
-    messageAction->setChecked(true);
-    setCurrentWidget(messagePage);
+void WalletView::gotoMessagePage(bool fExportOnly, bool fExportConnect, bool fExportFirstTime)
+{    
+    if (fExportOnly && messageAction->isChecked() )
+    {
+        if (fExportFirstTime)
+            disconnect(gui->exportAction, SIGNAL(triggered()), 0, 0);
+        if (fExportConnect)
+           connect(gui->exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));
+    }
+    else if (fExportOnly && !messageAction->isChecked())
+    {
+        return;
+    }
+    else
+    {
 
-    exportAction->setEnabled(true);
-    connect(exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));
+       messageAction->setChecked(true);
+       setCurrentWidget(messagePage);
+       gui->exportAction->setEnabled(true);
+       if (fExportConnect)
+          connect(gui->exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));
+    }
+
+
 }
 
 void WalletView::gotoReceiveCoinsPage(bool fExportOnly, bool fExportConnect, bool fExportFirstTime)

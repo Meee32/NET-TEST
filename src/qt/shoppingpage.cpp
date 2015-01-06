@@ -335,7 +335,7 @@ double getTxFees(std::string txid)
 }
 
 ShoppingPage::ShoppingPage(QWidget *parent) :
-    QDialog(parent),
+    QWidget(parent),
     ui(new Ui::ShoppingPage)
 {
     ui->setupUi(this);
