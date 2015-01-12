@@ -82,12 +82,14 @@ public:
    /// Get window identifier of QMainWindow (BitcoinGUI)
    WId getMainWinId() const;
 
+   Notificator* getNotificator();
+
 protected:
     void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
-    bool eventFilter(QObject *object, QEvent *event);
+    bool eventFilter(QObject *object, QEvent *event);    
 
 private:
     ClientModel *clientModel;
@@ -149,10 +151,10 @@ private:
     QAction *connectionIconAction;
     QAction *stakingIconAction;
 
-    QSystemTrayIcon *trayIcon;
-    Notificator *notificator;
+    QSystemTrayIcon *trayIcon;    
     TransactionView *transactionView;
     RPCConsole *rpcConsole;
+    Notificator *notificator;
 
     QMovie *syncIconMovie;
     /** Keep track of previous number of blocks, to detect progress */

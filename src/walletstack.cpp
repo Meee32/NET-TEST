@@ -33,7 +33,7 @@ bool WalletStack::addWalletView(const QString& name, WalletModel *walletModel, M
     walletView->setClientModel(clientModel);
     walletView->setWalletModel(walletModel);
     walletView->showOutOfSyncWarning(bOutOfSync);
-    walletView->setMessageModel(messageModel);
+    walletView->setMessageModel(messageModel);    
     addWidget(walletView);
     mapWalletViews[name] = walletView;
 

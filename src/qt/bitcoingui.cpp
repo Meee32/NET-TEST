@@ -863,6 +863,11 @@ QString BitcoinGUI::getCurrentWallet()
 
 }
 
+Notificator* BitcoinGUI::getNotificator()
+{
+    return this->notificator;
+}
+
 void BitcoinGUI::gotoSendCoinsPage()
 {
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);

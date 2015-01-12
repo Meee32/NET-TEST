@@ -290,7 +290,7 @@ void WalletView::incomingMessage(const QModelIndex & parent, int start, int end)
         QTextDocument html;
         html.setHtml(message);
         QString messageText(html.toPlainText());
-        notificator->notify(Notificator::Information,
+        this->gui->getNotificator()->notify(Notificator::Information,
                             tr("Incoming Message"),
                             tr("Date: %1\n"
                                "From Address: %2\n"
