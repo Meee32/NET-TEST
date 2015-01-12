@@ -24,6 +24,7 @@ class RPCConsole;
 class StakeForCharityDialog;
 class CWallet;
 class CWalletManager;
+class MessageModel;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -72,7 +73,7 @@ public:
     */
 
     void setWalletManager(CWalletManager *walletManager) { this->walletManager = walletManager; }
-    bool addWallet(const QString& name, WalletModel *walletModel);
+    bool addWallet(const QString& name, WalletModel *walletModel, MessageModel *messageModel);
     QString getCurrentWallet();
     bool setCurrentWallet(const QString& name);
 

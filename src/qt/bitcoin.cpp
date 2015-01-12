@@ -267,21 +267,20 @@ int main(int argc, char *argv[])
                     splash.finish(&window);
 
                 ClientModel clientModel(&optionsModel);
-                WalletModel walletModel(pwalletMain, &optionsModel);
-                MessageModel messageModel(pwalletMain, &walletModel);
 
                 window.setClientModel(&clientModel);
                 window.setWalletManager(pWalletManager);
-                //window.setWalletModel(&walletModel);
-                //window.setMessageModel(&messageModel);
 
                 // Create wallet models for each wallet and add it.
                 BOOST_FOREACH(const wallet_map::value_type& item, pWalletManager->GetWalletMap())
                 {
                     QString name(item.first.c_str());
                     if (name == "") name = "~Default";
-                    WalletModel *walletModel = new WalletModel(item.second.get(), &optionsModel);
-                    window.addWallet(name, walletModel);
+                    CWallet *wallet = item.second.get();
+                    WalletModel *walletModel = new WalletModel(wallet, &optionsModel);
+                    MessageModel *messageModel = new MessageModel(wallet, walletModel);
+                    window.addWallet(name, walletModel, messageModel);
+
                 }
                 window.setCurrentWallet("~Default");
 

@@ -16,6 +16,7 @@
 #include "walletmodel.h"
 #include "walletstack.h"
 #include "walletview.h"
+#include "messagemodel.h"
 #include "optionsmodel.h"
 #include "transactiondescdialog.h"
 #include "bitcoinunits.h"
@@ -626,14 +627,16 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 
 void BitcoinGUI::addWallet(const QString& name)
 {
-    WalletModel *walletModel = new WalletModel(walletManager->GetWallet(name.toStdString()).get(), clientModel->getOptionsModel());
-    addWallet(name, walletModel);
+    CWallet *wallet = walletManager->GetWallet(name.toStdString()).get();
+    WalletModel *walletModel = new WalletModel(wallet, clientModel->getOptionsModel());
+    MessageModel *messageModel = new MessageModel(wallet, walletModel);
+    addWallet(name, walletModel, messageModel);
     setCurrentWallet(name);
 }
 
-bool BitcoinGUI::addWallet(const QString& name, WalletModel *walletModel)
+bool BitcoinGUI::addWallet(const QString& name, WalletModel *walletModel, MessageModel *messageModel)
 {
-    if (!walletStack->addWalletView(name, walletModel)) return false;
+    if (!walletStack->addWalletView(name, walletModel, messageModel)) return false;
     walletList->addItem(name);
     mapWalletModels[name] = walletModel;
     return true;
@@ -1113,8 +1116,10 @@ void BitcoinGUI::newWallet()
       errBox.exec();
       return;
   }
-  WalletModel *walletModel = new WalletModel(walletManager->GetWallet(walletName).get(), clientModel->getOptionsModel());
-  addWallet(walletName.c_str(), walletModel);
+  CWallet *wallet = walletManager->GetWallet(walletName).get();
+  WalletModel *walletModel = new WalletModel(wallet, clientModel->getOptionsModel());
+  MessageModel *messageModel = new MessageModel(wallet, walletModel);
+  addWallet(walletName.c_str(), walletModel, messageModel);
   setCurrentWallet(walletName.c_str());
 
 }
@@ -1138,8 +1143,10 @@ void BitcoinGUI::loadWallet()
         errBox.exec();
         return;
     }
-    WalletModel *walletModel = new WalletModel(walletManager->GetWallet(walletName).get(), clientModel->getOptionsModel());
-    addWallet(walletName.c_str(), walletModel);
+    CWallet *wallet = walletManager->GetWallet(walletName).get();
+    WalletModel *walletModel = new WalletModel(wallet, clientModel->getOptionsModel());
+    MessageModel *messageModel = new MessageModel(wallet, walletModel);
+    addWallet(walletName.c_str(), walletModel, messageModel);
     setCurrentWallet(walletName.c_str());
 }
 

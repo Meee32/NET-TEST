@@ -29,6 +29,7 @@ class RPCConsole;
 class StakeForCharityDialog;
 class CBitcoinAddress;
 class CWalletManager;
+class MessageModel;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -51,7 +52,7 @@ public:
     
     void setClientModel(ClientModel *clientModel) { this->clientModel = clientModel; }
 
-    bool addWalletView(const QString& name, WalletModel *walletModel);
+    bool addWalletView(const QString& name, WalletModel *walletModel, MessageModel *messageModel);
     bool removeWalletView(const QString& name);
 
     bool handleURI(const QString &uri);
