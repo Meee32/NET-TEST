@@ -1595,7 +1595,7 @@ void ThreadCleanWalletPassphrase(void* parg)
 
 Value walletpassphrase(CWallet* pWallet, const Array& params, bool fHelp)
 {
-    if (pWallet->IsCrypted() && (fHelp || params.size() < 2 || params.size() > 3))
+    if ((!pWallet || pWallet->IsCrypted()) && (fHelp || params.size() < 2 || params.size() > 3))
         throw runtime_error(
             "walletpassphrase <passphrase> <timeout> [stakingonly]\n"
             "Stores the wallet decryption key in memory for <timeout> seconds.\n"
@@ -1640,7 +1640,7 @@ Value walletpassphrase(CWallet* pWallet, const Array& params, bool fHelp)
 
 Value walletpassphrasechange(CWallet* pWallet, const Array& params, bool fHelp)
 {
-    if (pWallet->IsCrypted() && (fHelp || params.size() != 2))
+    if ((!pWallet || pWallet->IsCrypted()) && (fHelp || params.size() != 2))
         throw runtime_error(
             "walletpassphrasechange <oldpassphrase> <newpassphrase>\n"
             "Changes the wallet passphrase from <oldpassphrase> to <newpassphrase>.");
@@ -1673,7 +1673,7 @@ Value walletpassphrasechange(CWallet* pWallet, const Array& params, bool fHelp)
 
 Value walletlock(CWallet* pWallet, const Array& params, bool fHelp)
 {
-  if (pWallet->IsCrypted() && (fHelp || params.size() != 0))
+  if ((!pWallet || pWallet->IsCrypted()) && (fHelp || params.size() != 0))
       throw runtime_error(
             "walletlock\n"
             "Removes the wallet encryption key from memory, locking the wallet.\n"
@@ -1854,7 +1854,7 @@ Value unloadwallet(CWallet* pWallet, const Array& params, bool fHelp)
 
 Value encryptwallet(CWallet* pWallet, const Array& params, bool fHelp)
 {
-    if (!pWallet->IsCrypted() && (fHelp || params.size() != 1))
+    if ((!pWallet || !pWallet->IsCrypted()) && (fHelp || params.size() != 1))
         throw runtime_error(
             "encryptwallet <passphrase>\n"
             "Encrypts the wallet with <passphrase>.");
