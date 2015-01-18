@@ -14,6 +14,8 @@
 #include "guiconstants.h"
 #include "winshutdownmonitor.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include "init.h"
 #include "ui_interface.h"
 #include "qtipcserver.h"
@@ -43,6 +45,7 @@ Q_IMPORT_PLUGIN(qtaccessiblewidgets)
 static WalletView *guiref2;
 static BitcoinGUI *guiref;
 static QSplashScreen *splashref;
+namespace fs = boost::filesystem;
 
 static void ThreadSafeMessageBox(const std::string& message, const std::string& caption, unsigned int style)
 {
@@ -276,8 +279,22 @@ int main(int argc, char *argv[])
                 {
                     QString name(item.first.c_str());
                     if (name == "") name = "~Default";
-                    CWallet *wallet = item.second.get();
+                    CWallet *wallet = item.second.get();                    
                     WalletModel *walletModel = new WalletModel(wallet, &optionsModel);
+                    std::string fileName = "wallet." + boost::lexical_cast<std::string>(GetTimeMillis()) + ".backup";
+                    fs::path backuppath = GetDataDir() / "backup";
+                    fs::create_directory(backuppath);
+                    QString qs = QString::fromStdString((backuppath / fileName).string());
+                    if(walletModel->backupWallet(qs))
+                    {
+                        LogPrintf("Backed up wallet %s to %s", name.toStdString().c_str(), (backuppath / fileName).string().c_str());
+                    }
+                    else
+                    {
+                        LogPrintf("Could not backup wallet %s", name.toStdString().c_str());
+                    }
+
+
                     MessageModel *messageModel = new MessageModel(wallet, walletModel);
                     window.addWallet(name, walletModel, messageModel);
 
